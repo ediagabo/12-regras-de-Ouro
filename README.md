@@ -1,33 +1,16 @@
-
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <title>Desafio – 12 Regras de Ouro</title>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  padding: 20px;
-}
-.container {
-  max-width: 900px;
-  margin: auto;
-  background: #fff;
-  padding: 25px;
-  border-radius: 12px;
-}
+body { font-family: Arial, sans-serif; background:#f4f6f8; padding:20px; }
+.container { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:12px; }
 .hidden { display:none; }
-.question { margin-bottom:15px; }
-button {
-  background:#2e7d32;
-  color:#fff;
-  border:none;
-  padding:10px 15px;
-  border-radius:6px;
-  cursor:pointer;
-}
-button:hover { background:#1b5e20; }
+.question { margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:6px; }
+button { background:#2e7d32; color:#fff; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; }
+button:disabled { background:#999; cursor:not-allowed; }
+.selo img { max-width:120px; margin:10px; }
 </style>
 </head>
 
@@ -38,124 +21,132 @@ button:hover { background:#1b5e20; }
 <!-- LOGIN -->
 <div id="login">
 <h2>Desafio das 12 Regras de Ouro</h2>
+
 <label>Nome:</label>
 <input id="nome"><br><br>
-<label>Setor:</label>
-<input id="setor"><br><br>
-<button onclick="iniciar()">Iniciar</button>
+
+<label>E-mail corporativo:</label>
+<input id="email" placeholder="@unimedcampinas.com.br"><br><br>
+
+<button onclick="login()">Entrar</button>
 </div>
 
 <!-- JOGO -->
 <div id="jogo" class="hidden">
-<h3 id="regraTitulo"></h3>
+<h3 id="tituloRegra"></h3>
 <div id="perguntas"></div>
-<button onclick="validarRegra()">Concluir Regra</button>
+<button id="btnConcluir" onclick="concluirRegra()">Concluir Regra</button>
 </div>
 
 <!-- FINAL -->
 <div id="final" class="hidden">
 <h2>Resultado Final</h2>
-<p><strong>Pontuação total:</strong> <span id="pontuacaoFinal"></span></p>
+<p><strong>Pontuação:</strong> <span id="pontuacaoFinal"></span></p>
+
+<h3>🏅 Selos conquistados</h3>
+<div id="selosConquistados" class="selo"></div>
+
 <button onclick="salvarRanking()">Salvar no Ranking</button>
-<div id="ranking"></div>
 </div>
 
 </div>
 
 <script>
 /* =====================
-   CONFIGURAÇÃO MENSAL
+   CONFIGURAÇÃO
 ===================== */
+
+const CAMPANHA = "SIPAT 2025";
 
 const regrasPorMes = {
-  0: [1,2],    // Janeiro
-  1: [3],      // Fevereiro
-  2: [4],      // Março
-  3: [5],      // Abril
-  4: [6],      // Maio
-  5: [7],      // Junho
-  6: [8],      // Julho
-  7: [9],      // Agosto
-  8: [10],     // Setembro
-  9: [11],     // Outubro
-  10:[12]      // Novembro
+  0:[1,2], 1:[3], 2:[4], 3:[5], 4:[6], 5:[7],
+  6:[8], 7:[9], 8:[10], 9:[11], 10:[12]
 };
 
-/* =====================
-   REGRAS
-===================== */
-
 const regras = [
-{ id:1, titulo:"Regra 01 – Atenção no Trajeto", perguntas:[
-{t:"Manter atenção no trajeto reduz acidentes.",c:true},
-{t:"Usar celular no trajeto não interfere na segurança.",c:false},
-{t:"A atenção faz parte da cultura de segurança.",c:true}
+{ id:1, titulo:"Regra 01 – Atenção no Trajeto", selo:"selos/regra01.png",
+  perguntas:[
+    {t:"Manter atenção no trajeto reduz acidentes.",c:true},
+    {t:"Celular não interfere na segurança.",c:false},
+    {t:"Atenção faz parte da cultura de segurança.",c:true}
 ]},
-{ id:2, titulo:"Regra 02 – Olhos no Caminho", perguntas:[
-{t:"Observar o caminho ajuda a identificar riscos.",c:true},
-{t:"Distração pode causar quedas.",c:true},
-{t:"Olhar o caminho elimina todos os riscos.",c:false}
+{ id:2, titulo:"Regra 02 – Olhos no Caminho", selo:"selos/regra02.png",
+  perguntas:[
+    {t:"Observar o caminho reduz riscos.",c:true},
+    {t:"Distração pode causar quedas.",c:true},
+    {t:"Olhar o caminho elimina riscos.",c:false}
 ]},
-{ id:3, titulo:"Regra 03 – Ergonomia Sempre", perguntas:[
-{t:"Ergonomia previne dores.",c:true},
-{t:"Ergonomia só vale para escritório.",c:false},
-{t:"Pausas ajudam na saúde.",c:true}
-]},
-{ id:4, titulo:"Regra 04 – Zero Improviso", perguntas:[
-{t:"Improviso aumenta riscos.",c:true},
-{t:"Improviso rápido é seguro.",c:false},
-{t:"Seguir procedimentos é essencial.",c:true}
-]},
-// 👉 continue até a regra 12
+// 👉 continuar até a regra 12
 ];
 
 /* =====================
    VARIÁVEIS
 ===================== */
 
-let indiceRegra = 0;
+let indice = 0;
 let pontos = 0;
 let acertos = 0;
+let selos = [];
 let nome = "";
-let setor = "";
+let email = "";
 
 /* =====================
-   FUNÇÕES
+   LOGIN
 ===================== */
 
-function iniciar() {
-  nome = document.getElementById("nome").value;
-  setor = document.getElementById("setor").value;
-  if(!nome) return alert("Informe seu nome");
+function login(){
+  nome = nomeInput.value;
+  email = emailInput.value;
 
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("jogo").classList.remove("hidden");
+  if(!email.endsWith("@unimedcampinas.com.br")){
+    alert("Use seu e-mail corporativo.");
+    return;
+  }
+
+  loginDiv.classList.add("hidden");
+  jogoDiv.classList.remove("hidden");
   carregarRegra();
 }
 
-function carregarRegra() {
-  if(indiceRegra >= regras.length) {
-    document.getElementById("jogo").classList.add("hidden");
-    document.getElementById("final").classList.remove("hidden");
+/* =====================
+   JOGO
+===================== */
+
+const loginDiv = document.getElementById("login");
+const jogoDiv = document.getElementById("jogo");
+const finalDiv = document.getElementById("final");
+
+const nomeInput = document.getElementById("nome");
+const emailInput = document.getElementById("email");
+
+function carregarRegra(){
+  if(indice >= regras.length){
+    jogoDiv.classList.add("hidden");
+    finalDiv.classList.remove("hidden");
     document.getElementById("pontuacaoFinal").innerText = pontos;
+    mostrarSelos();
     return;
   }
 
-  const regra = regras[indiceRegra];
+  const regra = regras[indice];
   const mesAtual = new Date().getMonth();
   const liberadas = regrasPorMes[mesAtual] || [];
 
-  if(!liberadas.includes(regra.id)) {
-    alert("Esta regra não está disponível neste mês.");
-    indiceRegra++;
-    carregarRegra();
+  if(!liberadas.includes(regra.id)){
+    document.getElementById("tituloRegra").innerText =
+      `${regra.titulo} (fora do período)`;
+    document.getElementById("perguntas").innerHTML =
+      "<p>Esta regra não está disponível neste mês.</p>";
+    document.getElementById("btnConcluir").disabled = true;
     return;
   }
 
-  document.getElementById("regraTitulo").innerText = regra.titulo;
-  let html = "";
+  document.getElementById("btnConcluir").disabled = false;
+  document.getElementById("tituloRegra").innerText = regra.titulo;
+
+  let html="";
   regra.perguntas.forEach((p,i)=>{
-    html += `
+    html+=`
       <div class="question">
         <p>${i+1}. ${p.t}</p>
         <input type="radio" name="q${i}" value="true"> Verdadeiro
@@ -165,47 +156,53 @@ function carregarRegra() {
   document.getElementById("perguntas").innerHTML = html;
 }
 
-function validarRegra() {
-  const regra = regras[indiceRegra];
+function concluirRegra(){
+  const regra = regras[indice];
+  let certos = 0;
+
   regra.perguntas.forEach((p,i)=>{
     const r = document.querySelector(`input[name="q${i}"]:checked`);
-    if(r && (r.value === "true") === p.c) {
+    if(r && (r.value==="true")===p.c){
       pontos += 10;
       acertos++;
+      certos++;
     }
   });
-  indiceRegra++;
+
+  if(certos === 3){
+    selos.push(regra.selo);
+  }
+
+  indice++;
   carregarRegra();
 }
 
-function salvarRanking() {
-  const agora = new Date();
-  const registro = {
-    nome, setor, pontos, acertos,
-    data: agora.toLocaleDateString("pt-BR"),
-    hora: agora.toLocaleTimeString("pt-BR")
-  };
+/* =====================
+   FINAL / RANKING
+===================== */
 
-  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
-  ranking.push(registro);
-  localStorage.setItem("ranking", JSON.stringify(ranking));
-  mostrarRanking();
+function mostrarSelos(){
+  const div = document.getElementById("selosConquistados");
+  selos.forEach(s=>{
+    div.innerHTML += `<img src="${s}">`;
+  });
 }
 
-function mostrarRanking() {
+function salvarRanking(){
+  const agora = new Date();
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
-  ranking.sort((a,b)=>{
-    if(b.pontos !== a.pontos) return b.pontos - a.pontos;
-    if(b.acertos !== a.acertos) return b.acertos - a.acertos;
-    return new Date(a.data+" "+a.hora) - new Date(b.data+" "+b.hora);
+
+  ranking.push({
+    campanha:CAMPANHA,
+    nome,email,
+    pontos,acertos,
+    selos:selos.length,
+    data:agora.toLocaleDateString("pt-BR"),
+    hora:agora.toLocaleTimeString("pt-BR")
   });
 
-  let html="<h3>Ranking</h3><ol>";
-  ranking.forEach(r=>{
-    html+=`<li>${r.nome} – ${r.setor} – ${r.pontos} pts – ${r.data} ${r.hora}</li>`;
-  });
-  html+="</ol>";
-  document.getElementById("ranking").innerHTML = html;
+  localStorage.setItem("ranking",JSON.stringify(ranking));
+  alert("Ranking salvo com sucesso!");
 }
 </script>
 
