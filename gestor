@@ -1,0 +1,103 @@
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Painel do Gestor</title>
+<style>
+body { font-family: Arial; padding:20px; }
+.hidden { display:none; }
+table { width:100%; border-collapse:collapse; }
+th,td { border:1px solid #ccc; padding:8px; }
+th { background:#2e7d32; color:#fff; }
+</style>
+</head>
+<body>
+
+<div id="loginGestor">
+<h2>🔐 Acesso do Gestor</h2>
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="acessar()">Entrar</button>
+</div>
+
+<div id="painel" class="hidden">
+<h2>📊 Painel do Gestor – 12 Regras de Ouro</h2>
+<button onclick="exportar()">Exportar Excel</button>
+
+<h3>Ranking Geral</h3>
+<table>
+<thead>
+<tr>
+<th>Nome</th><th>Unidade</th><th>Setor</th><th>Pontos</th><th>Acertos</th><th>Data</th><th>Hora</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<h3>🏢 Ranking por Unidade</h3>
+<div id="rankingUnidade"></div>
+</div>
+
+<script>
+const SENHA_GESTOR="gestor123"; // 🔐 ALTERE AQUI
+const CAMPANHA="SIPAT 2025";
+
+function acessar(){
+  if(document.getElementById("senha").value!==SENHA_GESTOR){
+    alert("Senha incorreta");
+    return;
+  }
+  document.getElementById("loginGestor").classList.add("hidden");
+  document.getElementById("painel").classList.remove("hidden");
+  carregar();
+}
+
+function carregar(){
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  ranking=ranking.filter(r=>r.campanha===CAMPANHA);
+
+  const tbody=document.getElementById("tbody");
+  ranking.forEach(r=>{
+    tbody.innerHTML+=`
+      <tr>
+        <td>${r.nome}</td>
+        <td>${r.unidade}</td>
+        <td>${r.setor}</td>
+        <td>${r.pontos}</td>
+        <td>${r.acertos}</td>
+        <td>${r.data}</td>
+        <td>${r.hora}</td>
+      </tr>`;
+  });
+
+  const unidades={};
+  ranking.forEach(r=>{
+    if(!unidades[r.unidade]) unidades[r.unidade]=0;
+    unidades[r.unidade]+=r.pontos;
+  });
+
+  let html="<ol>";
+  Object.entries(unidades)
+    .sort((a,b)=>b[1]-a[1])
+    .forEach(u=>{
+      html+=`<li>${u[0]} – ${u[1]} pts</li>`;
+    });
+  html+="</ol>";
+
+  document.getElementById("rankingUnidade").innerHTML=html;
+}
+
+function exportar(){
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  let csv="Nome,Email,Unidade,Setor,Pontos,Acertos,Data,Hora\n";
+  ranking.forEach(r=>{
+    csv+=`${r.nome},${r.email},${r.unidade},${r.setor},${r.pontos},${r.acertos},${r.data},${r.hora}\n`;
+  });
+
+  const blob=new Blob([csv],{type:"text/csv"});
+  const link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download="ranking-gestor.csv";
+  link.click();
+}
+</script>
+</body>
+</html>
