@@ -2,12 +2,14 @@
 <head>
 <meta charset="UTF-8">
 <title>Desafio – 12 Regras de Ouro</title>
+
 <style>
 body { font-family: Arial; background:#f4f6f8; padding:20px; }
 .container { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:12px; }
 .hidden { display:none; }
 .question { margin-bottom:15px; background:#f9f9f9; padding:10px; border-radius:6px; }
-button { background:#2e7d32; color:#fff; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; }
+button { background:#2e7d32; color:#fff; border:none; padding:10px 15px; border-radius:6px; cursor:pointer; margin-right:10px; }
+.certificate { border:3px solid #2e7d32; padding:30px; margin-top:20px; }
 </style>
 </head>
 
@@ -37,59 +39,63 @@ button { background:#2e7d32; color:#fff; border:none; padding:10px 15px; border-
 <div id="jogo" class="hidden">
 <h3 id="tituloRegra"></h3>
 <div id="perguntas"></div>
-<button id="btnConcluir" onclick="concluirRegra()">Concluir Regra</button>
+<button onclick="concluirRegra()">Concluir Regra</button>
+</div>
+
+<!-- RESULTADO DO NÍVEL -->
+<div id="resultado" class="hidden">
+<h2>Resultado do Nível</h2>
+
+<p><strong>Pontos neste nível:</strong> <span id="pontosNivel"></span></p>
+<p><strong>Pontuação acumulada:</strong> <span id="pontosAcumulados"></span></p>
+
+<button onclick="salvarNivel()">Salvar nível no ranking</button>
+<button id="btnCertificado" onclick="gerarCertificado()" class="hidden">
+Gerar certificado deste nível
+</button>
+
+<div id="rankingNivel"></div>
 </div>
 
 <!-- FINAL -->
 <div id="final" class="hidden">
-<h2>Resultado Final</h2>
-<p><strong>Pontuação:</strong> <span id="pontuacaoFinal"></span></p>
-
-<h3>🏅 Selos conquistados</h3>
-<div id="selosConquistados"></div>
-
-<button onclick="salvarRanking()">Salvar no Ranking</button>
-<div id="ranking"></div>
+<h2>🏆 Ranking Acumulado – Campanha</h2>
+<div id="rankingAcumulado"></div>
 </div>
 
 </div>
 
 <script>
+/* =====================
+   CONFIGURAÇÃO
+===================== */
 const CAMPANHA = "SIPAT 2025";
 
-/* ===== CONTROLE MENSAL ===== */
-function mesAnoAtual(){
-  const d=new Date();
-  return `${d.getMonth()+1}/${d.getFullYear()}`;
-}
-
-const regrasPorMes = {
-  0:[1,2],1:[3],2:[4],3:[5],4:[6],5:[7],
-  6:[8],7:[9],8:[10],9:[11],10:[12]
-};
-
-/* ===== REGRAS (EXEMPLO 1 e 2 – mantenha as demais como já tem) ===== */
-const regras=[
-{ id:1,titulo:"Regra 01 – Atenção no Trajeto",selo:"selos/regra01.png",
+/* =====================
+   REGRAS (exemplo – replique até 12)
+===================== */
+const regras = [
+{ id:1, titulo:"Regra 01 – Atenção no Trajeto",
   perguntas:[
     {t:"Manter atenção no trajeto reduz acidentes.",c:true},
     {t:"Celular não interfere na segurança.",c:false},
     {t:"Atenção faz parte da cultura de segurança.",c:true}
-]},
-{ id:2,titulo:"Regra 02 – Olhos no Caminho",selo:"selos/regra02.png",
-  perguntas:[
-    {t:"Observar o caminho reduz riscos.",c:true},
-    {t:"Distração pode causar quedas.",c:true},
-    {t:"Olhar o caminho elimina riscos.",c:false}
 ]}
 ];
 
-/* ===== VARIÁVEIS ===== */
-let indice=0,pontos=0,acertos=0,selos=[];
-let nome,email,setor,unidade;
-let tentativas={};
+/* =====================
+   VARIÁVEIS
+===================== */
+let indice=0;
+let pontosNivel=0;
+let pontosAcumulados=0;
+let acertosNivel=0;
 
-/* ===== LOGIN COM BLOQUEIO MENSAL ===== */
+let nome,email,setor,unidade;
+
+/* =====================
+   LOGIN
+===================== */
 function login(){
   nome=nomeInput.value;
   email=emailInput.value;
@@ -101,25 +107,17 @@ function login(){
     return;
   }
 
-  const participacoes=JSON.parse(localStorage.getItem("participacoes"))||[];
-  const periodo=mesAnoAtual();
-
-  if(participacoes.find(p=>p.email===email && p.campanha===CAMPANHA && p.periodo===periodo)){
-    alert("Você já participou neste mês. Aguarde novas regras.");
-    return;
-  }
-
-  participacoes.push({email,campanha:CAMPANHA,periodo});
-  localStorage.setItem("participacoes",JSON.stringify(participacoes));
-
   loginDiv.classList.add("hidden");
   jogoDiv.classList.remove("hidden");
   carregarRegra();
 }
 
-/* ===== JOGO ===== */
+/* =====================
+   JOGO
+===================== */
 const loginDiv=document.getElementById("login");
 const jogoDiv=document.getElementById("jogo");
+const resultadoDiv=document.getElementById("resultado");
 const finalDiv=document.getElementById("final");
 
 const nomeInput=document.getElementById("nome");
@@ -131,22 +129,16 @@ function carregarRegra(){
   if(indice>=regras.length){
     jogoDiv.classList.add("hidden");
     finalDiv.classList.remove("hidden");
-    document.getElementById("pontuacaoFinal").innerText=pontos;
-    mostrarSelos();
-    mostrarRanking();
+    mostrarRankingAcumulado();
     return;
   }
+
+  pontosNivel=0;
+  acertosNivel=0;
 
   const regra=regras[indice];
-  const mes=new Date().getMonth();
-  if(!(regrasPorMes[mes]||[]).includes(regra.id)){
-    alert("Você concluiu as regras disponíveis deste mês.");
-    indice=regras.length;
-    carregarRegra();
-    return;
-  }
-
   document.getElementById("tituloRegra").innerText=regra.titulo;
+
   let html="";
   regra.perguntas.forEach((p,i)=>{
     html+=`
@@ -159,60 +151,130 @@ function carregarRegra(){
   document.getElementById("perguntas").innerHTML=html;
 }
 
+/* =====================
+   CONCLUIR REGRA
+===================== */
 function concluirRegra(){
   const regra=regras[indice];
-  tentativas[regra.id]=(tentativas[regra.id]||0)+1;
 
-  let certos=0;
   regra.perguntas.forEach((p,i)=>{
     const r=document.querySelector(`input[name="q${i}"]:checked`);
     if(r && (r.value==="true")===p.c){
-      pontos+=10;
-      acertos++;
-      certos++;
+      pontosNivel+=10;
+      acertosNivel++;
     }
   });
 
-  if(certos===3) selos.push(regra.selo);
-  if(tentativas[regra.id]>=2 && certos<3) alert("Limite de tentativas atingido.");
+  pontosAcumulados+=pontosNivel;
 
-  indice++;
-  carregarRegra();
+  jogoDiv.classList.add("hidden");
+  resultadoDiv.classList.remove("hidden");
+
+  document.getElementById("pontosNivel").innerText=pontosNivel;
+  document.getElementById("pontosAcumulados").innerText=pontosAcumulados;
+
+  if(acertosNivel===3){
+    document.getElementById("btnCertificado").classList.remove("hidden");
+  }
+
+  mostrarRankingNivel();
 }
 
-/* ===== FINAL ===== */
-function mostrarSelos(){
-  const div=document.getElementById("selosConquistados");
-  selos.forEach(s=>div.innerHTML+=`<img src="${s}" width="80">`);
-}
-
-function salvarRanking(){
-  const agora=new Date();
+/* =====================
+   SALVAR NÍVEL
+===================== */
+function salvarNivel(){
+  const regra=regras[indice];
   let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
 
+  if(ranking.find(r=>r.email===email && r.campanha===CAMPANHA && r.regraId===regra.id)){
+    alert("Este nível já foi salvo.");
+    return;
+  }
+
+  const agora=new Date();
   ranking.push({
-    campanha:CAMPANHA,nome,email,setor,unidade,
-    pontos,acertos,selos:selos.length,
+    campanha:CAMPANHA,
+    regraId:regra.id,
+    regra:regra.titulo,
+    nome,email,setor,unidade,
+    pontos:pontosNivel,
+    acertos:acertosNivel,
     data:agora.toLocaleDateString("pt-BR"),
     hora:agora.toLocaleTimeString("pt-BR")
   });
 
   localStorage.setItem("ranking",JSON.stringify(ranking));
-  mostrarRanking();
+
+  indice++;
+  resultadoDiv.classList.add("hidden");
+  jogoDiv.classList.remove("hidden");
+  carregarRegra();
 }
 
-function mostrarRanking(){
+/* =====================
+   RANKING POR NÍVEL
+===================== */
+function mostrarRankingNivel(){
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  const regra=regras[indice];
+
+  ranking=ranking.filter(r=>r.regraId===regra.id && r.campanha===CAMPANHA);
+  ranking.sort((a,b)=>b.pontos-a.pontos||b.acertos-a.acertos);
+
+  let html="<h3>🏅 Ranking deste nível</h3><ol>";
+  ranking.forEach(r=>{
+    html+=`<li>${r.nome} – ${r.pontos} pts – ${r.data} ${r.hora}</li>`;
+  });
+  html+="</ol>";
+
+  document.getElementById("rankingNivel").innerHTML=html;
+}
+
+/* =====================
+   RANKING ACUMULADO
+===================== */
+function mostrarRankingAcumulado(){
   let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
   ranking=ranking.filter(r=>r.campanha===CAMPANHA);
 
-  let html="<h3>🏆 Ranking Geral</h3><ol>";
-  ranking.sort((a,b)=>b.pontos-a.pontos||b.acertos-a.acertos)
-    .forEach(r=>{
-      html+=`<li>${r.nome} – ${r.unidade} – ${r.pontos} pts</li>`;
+  const acumulado={};
+  ranking.forEach(r=>{
+    if(!acumulado[r.email]){
+      acumulado[r.email]={nome:r.nome,unidade:r.unidade,pontos:0,acertos:0};
+    }
+    acumulado[r.email].pontos+=r.pontos;
+    acumulado[r.email].acertos+=r.acertos;
+  });
+
+  let html="<ol>";
+  Object.values(acumulado)
+    .sort((a,b)=>b.pontos-a.pontos||b.acertos-a.acertos)
+    .forEach(a=>{
+      html+=`<li>${a.nome} – ${a.unidade} – ${a.pontos} pts</li>`;
     });
   html+="</ol>";
 
-  document.getElementById("ranking").innerHTML=html;
+  document.getElementById("rankingAcumulado").innerHTML=html;
+}
+
+/* =====================
+   CERTIFICADO
+===================== */
+function gerarCertificado(){
+  const regra=regras[indice];
+  const win=window.open("");
+  win.document.write(`
+    <div class="certificate">
+      <h2>Certificado de Conclusão</h2>
+      <p>Certificamos que <strong>${nome}</strong></p>
+      <p>concluiu com aproveitamento a</p>
+      <h3>${regra.titulo}</h3>
+      <p>Campanha: ${CAMPANHA}</p>
+      <p>Data: ${new Date().toLocaleDateString("pt-BR")}</p>
+    </div>
+  `);
+  win.print();
 }
 </script>
 </body>
