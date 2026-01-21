@@ -54,7 +54,10 @@ button {
 <section id="tela-login">
   <h3>Identificação do participante</h3>
 
-  <label>Nome</label><br>
+  <label>Nome Completo</label><br>
+  <input id="nome"><br><br>
+
+   <label>Unidade</label><br>
   <input id="nome"><br><br>
 
   <button id="btnIniciar">Iniciar Desafio</button>
