@@ -79,47 +79,45 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 16px;border-radius
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 
-/* MAPA MENSAL (Jan libera 1 e 2) */
-const regrasMes={
-  0:[1,2],1:[3],2:[4],3:[5],4:[6],5:[7],
-  6:[8],7:[9],8:[10],9:[11],10:[12]
+/* ===== MAPA MENSAL ===== */
+const regrasMes = {
+  0:[1,2], 1:[3], 2:[4], 3:[5], 4:[6], 5:[7],
+  6:[8], 7:[9], 8:[10], 9:[11], 10:[12]
 };
-const regraLiberada=id=>(regrasMes[new Date().getMonth()]||[]).includes(id);
+const regraLiberada = id => (regrasMes[new Date().getMonth()] || []).includes(id);
 
-/* REGRAS */
-<script>
+/* ===== REGRAS ===== */
 const regras = [
-  {
-    id: 1,
-    titulo: "Regra 01 – Atenção no Trajeto",
-    perguntas: [
-      { t: "Manter atenção no trajeto reduz acidentes.", c: true },
-      { t: "O uso do celular não interfere na segurança durante o deslocamento.", c: false },
-      { t: "A atenção faz parte da cultura de segurança.", c: true },
-      { t: "Dirigir cansado, com sono ou sob estresse aumenta o risco de acidentes.", c: true },
-      { t: "Usar rapidamente o celular enquanto caminha ou dirige não oferece risco.", c: false },
-      { t: "Atravessar fora da faixa ou com o semáforo fechado é seguro se não houver veículos.", c: false }
-    ]
-  },
-  {
-    id: 2,
-    titulo: "Regra 02 – Olhos no Caminho",
-    perguntas: [
-      { t: "Observar o caminho ajuda a identificar riscos.", c: true },
-      { t: "Distração pode causar quedas e colisões.", c: true },
-      { t: "Olhar o caminho elimina todos os riscos.", c: false },
-      { t: "Circular em home office com fios soltos pode causar acidentes.", c: true },
-      { t: "Carregar objetos que bloqueiam a visão aumenta o risco de quedas.", c: true },
-      { t: "Ignorar pisos molhados não oferece risco se caminhar devagar.", c: false }
-    ]
-  }
+ {
+  id:1,
+  titulo:"Regra 01 – Atenção no Trajeto",
+  perguntas:[
+    {t:"Manter atenção no trajeto reduz acidentes.",c:true},
+    {t:"O uso do celular não interfere na segurança durante o deslocamento.",c:false},
+    {t:"A atenção faz parte da cultura de segurança.",c:true},
+    {t:"Dirigir cansado, com sono ou sob estresse aumenta o risco de acidentes.",c:true},
+    {t:"Usar rapidamente o celular ao caminhar não oferece risco.",c:false},
+    {t:"Atravessar fora da faixa é seguro se não houver veículos.",c:false}
+  ]
+ },
+ {
+  id:2,
+  titulo:"Regra 02 – Olhos no Caminho",
+  perguntas:[
+    {t:"Observar o caminho ajuda a identificar riscos.",c:true},
+    {t:"Distração pode causar quedas e colisões.",c:true},
+    {t:"Olhar o caminho elimina todos os riscos.",c:false},
+    {t:"Circular em home office com fios soltos pode causar acidentes.",c:true},
+    {t:"Carregar objetos que bloqueiam a visão aumenta o risco.",c:true},
+    {t:"Ignorar piso molhado é seguro se caminhar devagar.",c:false}
+  ]
+ }
 ];
-</script>
 
-/* ESTADO */
+/* ===== ESTADO ===== */
 let indice=0,pontosNivel=0,nome="",email="",unidade="";
 
-/* ELEMENTOS */
+/* ===== ELEMENTOS ===== */
 const telaLogin=document.getElementById("tela-login");
 const telaJogo=document.getElementById("tela-jogo");
 const titulo=document.getElementById("titulo");
@@ -128,7 +126,7 @@ const mensagem=document.getElementById("mensagem");
 const bloqueio=document.getElementById("bloqueio");
 const msgLogin=document.getElementById("msgLogin");
 
-/* LOGIN */
+/* ===== LOGIN ===== */
 document.getElementById("btnIniciar").addEventListener("click",()=>{
   nome=document.getElementById("nome").value.trim();
   email=document.getElementById("email").value.trim();
@@ -136,11 +134,11 @@ document.getElementById("btnIniciar").addEventListener("click",()=>{
 
   msgLogin.innerText="";
   if(!nome||!email||!unidade){
-    msgLogin.innerText="⚠️ Preencha nome, e-mail e unidade.";
+    msgLogin.innerText="⚠️ Preencha todos os campos.";
     return;
   }
   if(!email.endsWith("@unimedcampinas.com.br")){
-    msgLogin.innerText="⚠️ Utilize e-mail @unimedcampinas.com.br";
+    msgLogin.innerText="⚠️ Utilize seu e-mail corporativo.";
     return;
   }
 
@@ -150,11 +148,11 @@ document.getElementById("btnIniciar").addEventListener("click",()=>{
   carregarRegra();
 });
 
-/* CONCLUIR */
+/* ===== CONCLUIR ===== */
 document.getElementById("btnConcluir").addEventListener("click",avaliar);
 document.getElementById("filtroRegra").addEventListener("change",rankingPorRegra);
 
-/* FUNÇÕES */
+/* ===== FUNÇÕES ===== */
 function carregarRegra(){
   mensagem.innerText="";
   bloqueio.classList.add("hidden");
@@ -162,7 +160,7 @@ function carregarRegra(){
 
   if(indice>=regras.length){
     titulo.innerText="🎉 Regras disponíveis concluídas!";
-    perguntasDiv.innerHTML="<p>Aguarde a próxima liberação mensal.</p>";
+    perguntasDiv.innerHTML="<p>Aguarde a próxima regra mensal.</p>";
     document.getElementById("btnConcluir").classList.add("hidden");
     return;
   }
@@ -206,7 +204,7 @@ function avaliar(){
   setTimeout(carregarRegra,1200);
 }
 
-/* RANKING */
+/* ===== RANKING ===== */
 function salvarRanking(regra){
   let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
   if(ranking.find(r=>r.email===email && r.regraId===regra.id)) return;
