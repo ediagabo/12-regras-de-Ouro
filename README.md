@@ -12,33 +12,29 @@ body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px}
 .question.correct{border-left:6px solid #2e7d32;background:#e8f5e9}
 .question.wrong{border-left:6px solid #c62828;background:#fdecea}
 button{background:#2e7d32;color:#fff;border:none;padding:10px 16px;border-radius:6px;cursor:pointer}
-.msg{margin-top:12px;font-weight:bold;color:#2e7d32}
+.msg{margin-top:12px;font-weight:bold}
 .block{background:#fff3cd;padding:12px;border-radius:6px;color:#856404;margin-top:10px}
 .ranking{background:#f1f8e9;padding:15px;border-radius:8px;margin-top:20px}
+input,select{padding:6px;width:100%}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<!-- ESCUDO -->
 <div style="text-align:center">
-  <img src="imagens/escudo.png" style="max-width:160px">
+  <h2>12 Regras de Ouro – Para um Ano Mais Seguro</h2>
 </div>
 
-<h2 style="text-align:center">12 Regras de Ouro – Para um Ano Mais Seguro</h2>
-
 <!-- LOGIN -->
-<section id="tela-login">
-  <h3>Identificação do participante</h3>
+<section id="login">
+  <label>Nome *</label>
+  <input id="nome">
 
-  <label>Nome *</label><br>
-  <input id="nome"><br><br>
+  <label>E-mail corporativo *</label>
+  <input id="email" placeholder="@unimedcampinas.com.br">
 
-  <label>E-mail corporativo *</label><br>
-  <input id="email" placeholder="@unimedcampinas.com.br"><br><br>
-
-  <label>Unidade *</label><br>
+  <label>Unidade *</label>
   <select id="unidade">
     <option value="">Selecione</option>
     <option>SEDE</option>
@@ -49,210 +45,222 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 16px;border-radius
     <option>CPS</option>
     <option>ADUC</option>
     <option>CCI</option>
-  </select><br><br>
+  </select>
 
-  <button id="btnIniciar">Iniciar Desafio</button>
+  <button onclick="iniciar()">Iniciar Desafio</button>
   <div id="msgLogin" class="msg"></div>
 </section>
 
 <!-- JOGO -->
-<section id="tela-jogo" class="hidden">
+<section id="jogo" class="hidden">
   <h3 id="titulo"></h3>
   <div id="perguntas"></div>
-  <button id="btnConcluir">Concluir Regra</button>
+  <button onclick="avaliar()">Concluir Regra</button>
   <div id="mensagem" class="msg"></div>
-  <div id="bloqueio" class="block hidden"></div>
 </section>
 
 <!-- RANKING -->
 <section class="ranking">
   <h3>🏆 Ranking Geral</h3>
-  <div id="rankingGeral"></div>
-
-  <h4>📌 Ranking por Regra</h4>
-  <select id="filtroRegra"></select>
-  <div id="rankingRegra"></div>
+  <div id="ranking"></div>
 </section>
 
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
+/* CONFIGURAÇÕES */
+const pontosPorAcerto = 10;
+const minimoCertificado = 40;
 
-/* ===== MAPA MENSAL ===== */
-const regrasMes = {
-  0:[1,2], 1:[3], 2:[4], 3:[5], 4:[6], 5:[7],
-  6:[8], 7:[9], 8:[10], 9:[11], 10:[12]
+/* MAPA MENSAL */
+const liberacao = {
+  0:[1,2],1:[3],2:[4],3:[5],4:[6],5:[7],
+  6:[8],7:[9],8:[10],9:[11],10:[12]
 };
-const regraLiberada = id => (regrasMes[new Date().getMonth()] || []).includes(id);
 
-/* ===== REGRAS ===== */
+/* REGRAS */
 const regras = [
- {
-  id:1,
-  titulo:"Regra 01 – Atenção no Trajeto",
-  perguntas:[
-    {t:"Manter atenção no trajeto reduz acidentes.",c:true},
-    {t:"O uso do celular não interfere na segurança durante o deslocamento.",c:false},
-    {t:"A atenção faz parte da cultura de segurança.",c:true},
-    {t:"Dirigir cansado, com sono ou sob estresse aumenta o risco de acidentes.",c:true},
-    {t:"Usar rapidamente o celular ao caminhar não oferece risco.",c:false},
-    {t:"Atravessar fora da faixa é seguro se não houver veículos.",c:false}
-  ]
- },
- {
-  id:2,
-  titulo:"Regra 02 – Olhos no Caminho",
-  perguntas:[
-    {t:"Observar o caminho ajuda a identificar riscos.",c:true},
-    {t:"Distração pode causar quedas e colisões.",c:true},
-    {t:"Olhar o caminho elimina todos os riscos.",c:false},
-    {t:"Circular em home office com fios soltos pode causar acidentes.",c:true},
-    {t:"Carregar objetos que bloqueiam a visão aumenta o risco.",c:true},
-    {t:"Ignorar piso molhado é seguro se caminhar devagar.",c:false}
-  ]
- }
+ {id:1,titulo:"Regra 01 – Atenção no Trajeto",perguntas:[
+  {t:"Manter atenção no trajeto reduz acidentes.",c:true},
+  {t:"Uso do celular não interfere na segurança.",c:false},
+  {t:"A atenção faz parte da cultura de segurança.",c:true},
+  {t:"Dirigir cansado aumenta o risco de acidentes.",c:true},
+  {t:"Celular ao caminhar não oferece risco.",c:false},
+  {t:"Atravessar fora da faixa é seguro.",c:false}
+ ]},
+ {id:2,titulo:"Regra 02 – Olhos no Caminho",perguntas:[
+  {t:"Observar o caminho ajuda a identificar riscos.",c:true},
+  {t:"Distração pode causar quedas.",c:true},
+  {t:"Olhar elimina todos os riscos.",c:false},
+  {t:"Tapetes soltos são perigosos.",c:true},
+  {t:"Bloquear visão ao carregar objetos é seguro.",c:false},
+  {t:"Pisos molhados exigem atenção.",c:true}
+ ]},
+ {id:3,titulo:"Regra 03 – Ergonomia Sempre",perguntas:[
+  {t:"Ajustes reduzem dores.",c:true},
+  {t:"Postura não interfere na saúde.",c:false},
+  {t:"Ergonomia adapta o trabalho à pessoa.",c:true},
+  {t:"Postura inadequada gera afastamentos.",c:true},
+  {t:"Só quem senta precisa de ergonomia.",c:false},
+  {t:"Pequenos ajustes previnem doenças.",c:true}
+ ]},
+ {id:4,titulo:"Regra 04 – Nada de Improviso",perguntas:[
+  {t:"Improviso gera acidentes.",c:true},
+  {t:"Usar cadeira como escada é seguro.",c:false},
+  {t:"Procedimentos devem ser seguidos.",c:true},
+  {t:"Improviso aumenta riscos.",c:true},
+  {t:"Se for rápido não tem risco.",c:false},
+  {t:"Na dúvida, interrompa a atividade.",c:true}
+ ]},
+ {id:5,titulo:"Regra 05 – Organização Salva Vidas",perguntas:[
+  {t:"Ambiente organizado reduz acidentes.",c:true},
+  {t:"Bagunça não gera risco.",c:false},
+  {t:"Organização melhora segurança.",c:true},
+  {t:"Cabos no chão causam quedas.",c:true},
+  {t:"Desorganização afeta só estética.",c:false},
+  {t:"Guardar materiais previne acidentes.",c:true}
+ ]},
+ {id:6,titulo:"Regra 06 – Comunicação é Segurança",perguntas:[
+  {t:"Comunicar riscos previne acidentes.",c:true},
+  {t:"Se não aconteceu, não precisa avisar.",c:false},
+  {t:"Diálogo fortalece segurança.",c:true},
+  {t:"Quase acidentes devem ser relatados.",c:true},
+  {t:"Só líderes comunicam riscos.",c:false},
+  {t:"Troca de informações é prevenção.",c:true}
+ ]},
+ {id:7,titulo:"Regra 07 – Uso Correto de EPI",perguntas:[
+  {t:"EPI reduz exposição aos riscos.",c:true},
+  {t:"Usar só em fiscalização é correto.",c:false},
+  {t:"EPI deve seguir treinamento.",c:true},
+  {t:"Uso incorreto gera falsa segurança.",c:true},
+  {t:"Desconforto justifica não usar EPI.",c:false},
+  {t:"Zelar pelo EPI é dever do trabalhador.",c:true}
+ ]},
+ {id:8,titulo:"Regra 08 – Saúde Mental Importa",perguntas:[
+  {t:"Saúde mental influencia segurança.",c:true},
+  {t:"Estresse não afeta acidentes.",c:false},
+  {t:"Falar sobre saúde mental ajuda.",c:true},
+  {t:"Ignorar sinais compromete decisões.",c:true},
+  {t:"Só saúde física importa.",c:false},
+  {t:"Buscar apoio é prevenção.",c:true}
+ ]},
+ {id:9,titulo:"Regra 09 – Segurança Contra Incêndio",perguntas:[
+  {t:"Conhecer rotas de fuga é essencial.",c:true},
+  {t:"Elevador pode ser usado em incêndio.",c:false},
+  {t:"Extintor só deve ser usado com treino.",c:true},
+  {t:"Obstruir saída aumenta risco.",c:true},
+  {t:"Alarme pode ser ignorado.",c:false},
+  {t:"Seguir brigada reduz danos.",c:true}
+ ]},
+ {id:10,titulo:"Regra 10 – Compromisso Coletivo",perguntas:[
+  {t:"Segurança é responsabilidade de todos.",c:true},
+  {t:"Só SESMT previne acidentes.",c:false},
+  {t:"Atitudes seguras impactam o coletivo.",c:true},
+  {t:"Ignorar comportamento inseguro é ok.",c:false},
+  {t:"Cuidado coletivo fortalece cultura.",c:true},
+  {t:"Dar exemplo incentiva segurança.",c:true}
+ ]},
+ {id:11,titulo:"Regra 11 – Biossegurança",perguntas:[
+  {t:"Biossegurança reduz contaminações.",c:true},
+  {t:"EPI pode ser dispensado.",c:false},
+  {t:"Higienizar mãos é essencial.",c:true},
+  {t:"Descarte incorreto gera riscos.",c:true},
+  {t:"Só área da saúde precisa.",c:false},
+  {t:"Seguir protocolos protege.",c:true}
+ ]},
+ {id:12,titulo:"Regra 12 – Estrutura Segura",perguntas:[
+  {t:"Ambientes conservados previnem acidentes.",c:true},
+  {t:"Falhas pequenas não oferecem risco.",c:false},
+  {t:"Iluminação adequada é segurança.",c:true},
+  {t:"Manutenção preventiva reduz falhas.",c:true},
+  {t:"Problemas podem ser ignorados.",c:false},
+  {t:"Comunicar falhas é prevenção.",c:true}
+ ]}
 ];
 
-/* ===== ESTADO ===== */
-let indice=0,pontosNivel=0,nome="",email="",unidade="";
+let usuario={},indice=0,pontos=0;
 
-/* ===== ELEMENTOS ===== */
-const telaLogin=document.getElementById("tela-login");
-const telaJogo=document.getElementById("tela-jogo");
-const titulo=document.getElementById("titulo");
-const perguntasDiv=document.getElementById("perguntas");
-const mensagem=document.getElementById("mensagem");
-const bloqueio=document.getElementById("bloqueio");
-const msgLogin=document.getElementById("msgLogin");
+/* FUNÇÕES */
+function iniciar(){
+ usuario.nome=nome.value.trim();
+ usuario.email=email.value.trim();
+ usuario.unidade=unidade.value;
+ if(!usuario.nome||!usuario.email||!usuario.unidade){
+  msgLogin.innerText="Preencha todos os campos.";
+  return;
+ }
+ if(!usuario.email.endsWith("@unimedcampinas.com.br")){
+  msgLogin.innerText="Use e-mail corporativo.";
+  return;
+ }
+ login.classList.add("hidden");
+ jogo.classList.remove("hidden");
+ carregar();
+}
 
-/* ===== LOGIN ===== */
-document.getElementById("btnIniciar").addEventListener("click",()=>{
-  nome=document.getElementById("nome").value.trim();
-  email=document.getElementById("email").value.trim();
-  unidade=document.getElementById("unidade").value;
-
-  msgLogin.innerText="";
-  if(!nome||!email||!unidade){
-    msgLogin.innerText="⚠️ Preencha todos os campos.";
-    return;
-  }
-  if(!email.endsWith("@unimedcampinas.com.br")){
-    msgLogin.innerText="⚠️ Utilize seu e-mail corporativo.";
-    return;
-  }
-
-  telaLogin.classList.add("hidden");
-  telaJogo.classList.remove("hidden");
-  indice=0;
-  carregarRegra();
-});
-
-/* ===== CONCLUIR ===== */
-document.getElementById("btnConcluir").addEventListener("click",avaliar);
-document.getElementById("filtroRegra").addEventListener("change",rankingPorRegra);
-
-/* ===== FUNÇÕES ===== */
-function carregarRegra(){
-  mensagem.innerText="";
-  bloqueio.classList.add("hidden");
-  pontosNivel=0;
-
-  if(indice>=regras.length){
-    titulo.innerText="🎉 Regras disponíveis concluídas!";
-    perguntasDiv.innerHTML="<p>Aguarde a próxima regra mensal.</p>";
-    document.getElementById("btnConcluir").classList.add("hidden");
-    return;
-  }
-
-  const regra=regras[indice];
-  if(!regraLiberada(regra.id)){
-    titulo.innerText=regra.titulo;
-    perguntasDiv.innerHTML="";
-    bloqueio.innerText="⏳ Esta regra ainda não está liberada.";
-    bloqueio.classList.remove("hidden");
-    document.getElementById("btnConcluir").classList.add("hidden");
-    return;
-  }
-
+function carregar(){
+ const regra=regras[indice];
+ if(!liberacao[new Date().getMonth()]?.includes(regra.id)){
   titulo.innerText=regra.titulo;
-  let html="";
-  regra.perguntas.forEach((p,i)=>{
-    html+=`
-      <div class="question">
-        <p>${i+1}. ${p.t}</p>
-        <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
-        <label><input type="radio" name="q${i}" value="false"> Falso</label>
-      </div>`;
-  });
-  perguntasDiv.innerHTML=html;
-  document.getElementById("btnConcluir").classList.remove("hidden");
+  perguntas.innerHTML="<div class='block'>Aguarde liberação mensal.</div>";
+  return;
+ }
+ titulo.innerText=regra.titulo;
+ perguntas.innerHTML="";
+ regra.perguntas.forEach((p,i)=>{
+  perguntas.innerHTML+=`
+   <div class="question">
+    <p>${p.t}</p>
+    <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
+    <label><input type="radio" name="q${i}" value="false"> Falso</label>
+   </div>`;
+ });
 }
 
 function avaliar(){
-  const regra=regras[indice];
-  document.querySelectorAll(".question").forEach((q,i)=>{
-    const marcada=document.querySelector(`input[name="q${i}"]:checked`);
-    if(marcada && (marcada.value==="true")===regra.perguntas[i].c){
-      pontosNivel+=10; q.classList.add("correct");
-    } else q.classList.add("wrong");
-  });
-
-  salvarRanking(regra);
-  mensagem.innerText=`Regra concluída! Pontuação: ${pontosNivel} pontos.`;
-  indice++;
-  setTimeout(carregarRegra,1200);
+ const regra=regras[indice];
+ pontos=0;
+ document.querySelectorAll(".question").forEach((q,i)=>{
+  const r=document.querySelector(`input[name="q${i}"]:checked`);
+  if(r && (r.value==="true")===regra.perguntas[i].c){
+   pontos+=pontosPorAcerto;
+   q.classList.add("correct");
+  } else q.classList.add("wrong");
+ });
+ salvarRanking(regra);
+ mensagem.innerText = pontos>=minimoCertificado
+  ? "Regra concluída com sucesso!"
+  : "Regra concluída. Reflita sobre as orientações.";
+ indice++;
+ if(indice<regras.length) setTimeout(carregar,1500);
+ else mensagem.innerText="Parabéns! Aguarde a próxima regra.";
+ atualizarRanking();
 }
 
-/* ===== RANKING ===== */
 function salvarRanking(regra){
-  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
-  if(ranking.find(r=>r.email===email && r.regraId===regra.id)) return;
-
-  const agora=new Date();
-  ranking.push({
-    nome,email,unidade,
-    regra:regra.titulo,regraId:regra.id,
-    pontos:pontosNivel,
-    data:agora.toLocaleDateString("pt-BR"),
-    hora:agora.toLocaleTimeString("pt-BR")
-  });
-  localStorage.setItem("ranking",JSON.stringify(ranking));
-  atualizarRanking();
+ let r=JSON.parse(localStorage.getItem("ranking"))||[];
+ r.push({
+  nome:usuario.nome,
+  unidade:usuario.unidade,
+  regra:regra.titulo,
+  pontos,
+  data:new Date().toLocaleString("pt-BR")
+ });
+ localStorage.setItem("ranking",JSON.stringify(r));
 }
 
 function atualizarRanking(){
-  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
-  let total={};
-  ranking.forEach(r=>{
-    if(!total[r.nome]) total[r.nome]=0;
-    total[r.nome]+=r.pontos;
-  });
-  let html="<ol>";
-  Object.entries(total).sort((a,b)=>b[1]-a[1])
-    .forEach(([n,p])=>html+=`<li>${n} – ${p} pts</li>`);
-  html+="</ol>";
-  document.getElementById("rankingGeral").innerHTML=html;
-
-  const sel=document.getElementById("filtroRegra");
-  sel.innerHTML="<option value=''>Selecione</option>";
-  regras.forEach(r=>sel.innerHTML+=`<option value="${r.id}">${r.titulo}</option>`);
+ let r=JSON.parse(localStorage.getItem("ranking"))||[];
+ let total={};
+ r.forEach(i=>{
+  if(!total[i.nome]) total[i.nome]=0;
+  total[i.nome]+=i.pontos;
+ });
+ ranking.innerHTML="<ol>"+Object.entries(total)
+  .sort((a,b)=>b[1]-a[1])
+  .map(i=>`<li>${i[0]} – ${i[1]} pts</li>`).join("")+"</ol>";
 }
-
-function rankingPorRegra(){
-  const id=this.value;
-  if(!id) return;
-  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
-  ranking=ranking.filter(r=>r.regraId==id);
-  ranking.sort((a,b)=>b.pontos-a.pontos);
-  let html="<ol>";
-  ranking.forEach(r=>html+=`<li>${r.nome} – ${r.unidade} – ${r.pontos} pts – ${r.data} ${r.hora}</li>`);
-  html+="</ol>";
-  document.getElementById("rankingRegra").innerHTML=html;
-}
-
 atualizarRanking();
-});
 </script>
 
 </body>
