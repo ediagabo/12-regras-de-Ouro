@@ -87,26 +87,34 @@ const regrasMes={
 const regraLiberada=id=>(regrasMes[new Date().getMonth()]||[]).includes(id);
 
 /* REGRAS */
-const regras=[
- {id:1,titulo:"Regra 01 – Atenção no Trajeto",
-  perguntas:[
-   {t:"Manter atenção no trajeto reduz acidentes.",c:true},
-   {t:"Uso do celular não interfere na segurança.",c:false},
-   {t:"A atenção faz parte da cultura de segurança.",c:true}
-    {t:"A Dirigir cansado, com sono ou sob estresse aumenta significativamente o risco de acidentes.",c:true}
-    {t:"Usar rapidamente o celular enquanto caminha ou dirige não tem risco de acidentes e não precisa ser evitado.",c:false}
-      {t:"Atravessar na faixa de pedestres ou com o semáforo fechado é seguro quando não há muitos veículos na via.",c:false}
- ]},
- {id:2,titulo:"Regra 02 – Olhos no Caminho",
-  perguntas:[
-   {t:"Observar o caminho ajuda a identificar riscos.",c:true},
-   {t:"Distração pode causar quedas.",c:true},
-   {t:"Olhar o caminho elimina todos os riscos.",c:false}
-    {t:"Em home office, circular por ambientes com fios soltos ou tapetes dobrados é seguro se houver atenção redobrada.",c:false}
-    {t:"Carregar caixas ou objetos que bloqueiem a visão aumenta o risco de quedas e deve ser evitado.",c:true}
-    {t:"Ignorar obstáculos ou pisos molhados não oferece risco se você estiver caminhando devagar.",c:false}
- ]}
+<script>
+const regras = [
+  {
+    id: 1,
+    titulo: "Regra 01 – Atenção no Trajeto",
+    perguntas: [
+      { t: "Manter atenção no trajeto reduz acidentes.", c: true },
+      { t: "O uso do celular não interfere na segurança durante o deslocamento.", c: false },
+      { t: "A atenção faz parte da cultura de segurança.", c: true },
+      { t: "Dirigir cansado, com sono ou sob estresse aumenta o risco de acidentes.", c: true },
+      { t: "Usar rapidamente o celular enquanto caminha ou dirige não oferece risco.", c: false },
+      { t: "Atravessar fora da faixa ou com o semáforo fechado é seguro se não houver veículos.", c: false }
+    ]
+  },
+  {
+    id: 2,
+    titulo: "Regra 02 – Olhos no Caminho",
+    perguntas: [
+      { t: "Observar o caminho ajuda a identificar riscos.", c: true },
+      { t: "Distração pode causar quedas e colisões.", c: true },
+      { t: "Olhar o caminho elimina todos os riscos.", c: false },
+      { t: "Circular em home office com fios soltos pode causar acidentes.", c: true },
+      { t: "Carregar objetos que bloqueiam a visão aumenta o risco de quedas.", c: true },
+      { t: "Ignorar pisos molhados não oferece risco se caminhar devagar.", c: false }
+    ]
+  }
 ];
+</script>
 
 /* ESTADO */
 let indice=0,pontosNivel=0,nome="",email="",unidade="";
