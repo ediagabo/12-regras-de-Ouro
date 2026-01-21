@@ -49,6 +49,13 @@ button {
   font-weight: bold;
   color: #2e7d32;
 }
+.block {
+  background:#fff3cd;
+  padding:15px;
+  border-radius:6px;
+  color:#856404;
+  margin-top:10px;
+}
 </style>
 </head>
 
@@ -77,11 +84,12 @@ button {
   <div id="perguntas"></div>
   <button id="btnConcluir">Concluir Regra</button>
   <div id="mensagem" class="msg"></div>
+  <div id="bloqueio" class="block hidden"></div>
 </section>
 
 <!-- RANKING -->
 <section class="ranking">
-  <h3>🏆 Ranking Geral da Campanha</h3>
+  <h3>🏆 Ranking Geral</h3>
   <div id="rankingGeral"></div>
 
   <h4>📌 Ranking por Regra</h4>
@@ -94,76 +102,108 @@ button {
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+/* ================= CONFIGURAÇÃO ================= */
+
 const regras = [
- {
-  id:1,
-  titulo:"Regra 01 – Atenção no Trajeto",
-  perguntas:[
-   {t:"Manter atenção no trajeto reduz acidentes.",c:true},
-   {t:"O uso do celular não interfere na segurança.",c:false},
-   {t:"A atenção faz parte da cultura de segurança.",c:true}
-  ]
- },
- {
-  id:2,
-  titulo:"Regra 02 – Olhos no Caminho",
-  perguntas:[
-   {t:"Observar o caminho ajuda a identificar riscos.",c:true},
-   {t:"Distração pode causar quedas.",c:true},
-   {t:"Olhar o caminho elimina todos os riscos.",c:false}
-  ]
- }
+ { id:1, titulo:"Regra 01 – Atenção no Trajeto",
+   perguntas:[
+    {t:"Manter atenção no trajeto reduz acidentes.",c:true},
+    {t:"Uso do celular não interfere na segurança.",c:false},
+    {t:"A atenção faz parte da cultura de segurança.",c:true}
+ ]},
+ { id:2, titulo:"Regra 02 – Olhos no Caminho",
+   perguntas:[
+    {t:"Observar o caminho ajuda a identificar riscos.",c:true},
+    {t:"Distração pode causar quedas.",c:true},
+    {t:"Olhar o caminho elimina riscos.",c:false}
+ ]}
+ // 👉 continue até a regra 12
 ];
+
+// regra liberada = mês atual (jan=1, fev=2 ...)
+function regraLiberada(id){
+  const mesAtual = new Date().getMonth() + 1;
+  return id <= mesAtual;
+}
+
+/* ================= VARIÁVEIS ================= */
 
 let indice = 0;
 let pontosNivel = 0;
 let nomeJogador = "";
+
+/* ================= ELEMENTOS ================= */
 
 const telaLogin = document.getElementById("tela-login");
 const telaJogo = document.getElementById("tela-jogo");
 const titulo = document.getElementById("titulo");
 const perguntasDiv = document.getElementById("perguntas");
 const mensagem = document.getElementById("mensagem");
+const bloqueio = document.getElementById("bloqueio");
+
+/* ================= LOGIN ================= */
 
 document.getElementById("btnIniciar").addEventListener("click", () => {
  nomeJogador = document.getElementById("nome").value;
- if(!nomeJogador){ mensagem.innerText="Informe seu nome."; return; }
+ if(!nomeJogador){
+  mensagem.innerText="Informe seu nome.";
+  return;
+ }
  telaLogin.classList.add("hidden");
  telaJogo.classList.remove("hidden");
  carregarRegra();
 });
 
+/* ================= CONCLUIR ================= */
+
 document.getElementById("btnConcluir").addEventListener("click", avaliar);
 
 document.getElementById("filtroRegra").addEventListener("change", rankingPorRegra);
 
+/* ================= FUNÇÕES ================= */
+
 function carregarRegra(){
  mensagem.innerText="";
+ bloqueio.classList.add("hidden");
  pontosNivel=0;
 
  if(indice>=regras.length){
   titulo.innerText="🎉 Desafio concluído!";
-  perguntasDiv.innerHTML="<p>Aguarde a próxima regra.</p>";
+  perguntasDiv.innerHTML="<p>Aguarde a próxima regra mensal.</p>";
   document.getElementById("btnConcluir").classList.add("hidden");
   return;
  }
 
- titulo.innerText=regras[indice].titulo;
+ const regra = regras[indice];
+
+ if(!regraLiberada(regra.id)){
+  titulo.innerText=regra.titulo;
+  perguntasDiv.innerHTML="";
+  bloqueio.innerText="⏳ Esta regra ainda não está liberada. Aguarde o próximo mês.";
+  bloqueio.classList.remove("hidden");
+  document.getElementById("btnConcluir").classList.add("hidden");
+  return;
+ }
+
+ titulo.innerText=regra.titulo;
+
  let html="";
- regras[indice].perguntas.forEach((p,i)=>{
+ regra.perguntas.forEach((p,i)=>{
   html+=`
-  <div class="question">
-   <p>${i+1}. ${p.t}</p>
-   <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
-   <label><input type="radio" name="q${i}" value="false"> Falso</label>
-  </div>`;
+   <div class="question">
+    <p>${i+1}. ${p.t}</p>
+    <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
+    <label><input type="radio" name="q${i}" value="false"> Falso</label>
+   </div>`;
  });
+
  perguntasDiv.innerHTML=html;
  document.getElementById("btnConcluir").classList.remove("hidden");
 }
 
 function avaliar(){
- const regra = regras[indice];
+ const regra=regras[indice];
+
  document.querySelectorAll(".question").forEach((q,i)=>{
   const marcada=document.querySelector(`input[name="q${i}"]:checked`);
   if(marcada && (marcada.value==="true")===regra.perguntas[i].c){
@@ -172,10 +212,12 @@ function avaliar(){
  });
 
  salvarRanking(regra);
- mensagem.innerText=`Pontuação neste nível: ${pontosNivel} pontos`;
+ mensagem.innerText=`Regra concluída! Pontuação: ${pontosNivel} pontos.`;
  indice++;
  setTimeout(carregarRegra,1500);
 }
+
+/* ================= RANKING ================= */
 
 function salvarRanking(regra){
  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
@@ -190,6 +232,7 @@ function salvarRanking(regra){
   data:agora.toLocaleDateString("pt-BR"),
   hora:agora.toLocaleTimeString("pt-BR")
  });
+
  localStorage.setItem("ranking",JSON.stringify(ranking));
  atualizarRanking();
 }
@@ -201,6 +244,7 @@ function atualizarRanking(){
   if(!total[r.nome]) total[r.nome]=0;
   total[r.nome]+=r.pontos;
  });
+
  let html="<ol>";
  Object.entries(total).sort((a,b)=>b[1]-a[1])
  .forEach(([n,p])=>html+=`<li>${n} – ${p} pts</li>`);
@@ -231,4 +275,5 @@ atualizarRanking();
 
 </body>
 </html>
+
 
