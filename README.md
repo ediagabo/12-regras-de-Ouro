@@ -18,12 +18,24 @@ body {
   border-radius: 10px;
 }
 .hidden { display: none !important; }
+
 .question {
   background: #f9f9f9;
   padding: 10px;
   border-radius: 6px;
   margin-bottom: 15px;
 }
+
+.question.correct {
+  border-left: 6px solid #2e7d32;
+  background: #e8f5e9;
+}
+
+.question.wrong {
+  border-left: 6px solid #c62828;
+  background: #fdecea;
+}
+
 button {
   background: #2e7d32;
   color: #fff;
@@ -32,6 +44,7 @@ button {
   border-radius: 6px;
   cursor: pointer;
 }
+
 .msg {
   margin-top: 15px;
   font-weight: bold;
@@ -44,6 +57,7 @@ button {
 
 <div class="container">
 
+<!-- ESCUDO -->
 <div style="text-align:center;">
   <img src="imagens/escudo.png" style="max-width:160px;">
 </div>
@@ -53,13 +67,8 @@ button {
 <!-- LOGIN -->
 <section id="tela-login">
   <h3>Identificação do participante</h3>
-
-  <label>Nome Completo</label><br>
+  <label>Nome</label><br>
   <input id="nome"><br><br>
-
-   <label>Unidade</label><br>
-  <input id="nome"><br><br>
-
   <button id="btnIniciar">Iniciar Desafio</button>
 </section>
 
@@ -87,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       titulo: "Regra 01 – Atenção no Trajeto",
       perguntas: [
         { t: "Manter atenção no trajeto reduz acidentes.", c: true },
-        { t: "Uso do celular não interfere na segurança.", c: false },
+        { t: "O uso do celular não interfere na segurança.", c: false },
         { t: "A atenção faz parte da cultura de segurança.", c: true }
       ]
     },
@@ -96,12 +105,13 @@ document.addEventListener("DOMContentLoaded", () => {
       perguntas: [
         { t: "Observar o caminho ajuda a identificar riscos.", c: true },
         { t: "Distração pode causar quedas.", c: true },
-        { t: "Olhar o caminho elimina riscos.", c: false }
+        { t: "Olhar o caminho elimina todos os riscos.", c: false }
       ]
     }
   ];
 
   let indice = 0;
+  let pontosNivel = 0;
 
   document.getElementById("btnIniciar").addEventListener("click", () => {
     if (!document.getElementById("nome").value) {
@@ -114,19 +124,16 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btnConcluir").addEventListener("click", () => {
-    mensagem.innerText = "✅ Regra concluída! Avançando...";
-    indice++;               // 🔑 AQUI ESTÁ A CORREÇÃO
-    setTimeout(() => {
-      carregarRegra();
-    }, 800);
+    avaliarRespostas();
   });
 
   function carregarRegra() {
     mensagem.innerText = "";
+    pontosNivel = 0;
 
     if (indice >= regras.length) {
       titulo.innerText = "🎉 Desafio concluído!";
-      perguntasDiv.innerHTML = "<p>Parabéns! Você concluiu todas as regras disponíveis.</p>";
+      perguntasDiv.innerHTML = "<p>Você concluiu todas as regras disponíveis.</p>";
       document.getElementById("btnConcluir").classList.add("hidden");
       return;
     }
@@ -137,10 +144,10 @@ document.addEventListener("DOMContentLoaded", () => {
     let html = "";
     regra.perguntas.forEach((p, i) => {
       html += `
-        <div class="question">
+        <div class="question" data-index="${i}">
           <p>${i + 1}. ${p.t}</p>
-          <label><input type="radio" name="q${i}"> Verdadeiro</label><br>
-          <label><input type="radio" name="q${i}"> Falso</label>
+          <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
+          <label><input type="radio" name="q${i}" value="false"> Falso</label>
         </div>
       `;
     });
@@ -149,8 +156,34 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("btnConcluir").classList.remove("hidden");
   }
 
+  function avaliarRespostas() {
+    const regra = regras[indice];
+    const questoes = document.querySelectorAll(".question");
+    pontosNivel = 0;
+
+    questoes.forEach((div, i) => {
+      const marcada = document.querySelector(`input[name="q${i}"]:checked`);
+      const correta = regra.perguntas[i].c;
+
+      if (marcada && (marcada.value === "true") === correta) {
+        pontosNivel += 10;
+        div.classList.add("correct");
+      } else {
+        div.classList.add("wrong");
+      }
+    });
+
+    mensagem.innerText = `✅ Regra concluída! Pontuação deste nível: ${pontosNivel} pontos.`;
+    indice++;
+
+    setTimeout(() => {
+      carregarRegra();
+    }, 1500);
+  }
+
 });
 </script>
 
 </body>
 </html>
+
