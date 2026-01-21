@@ -32,6 +32,11 @@ button {
   border-radius: 6px;
   cursor: pointer;
 }
+.msg {
+  margin-top: 15px;
+  font-weight: bold;
+  color: #2e7d32;
+}
 </style>
 </head>
 
@@ -52,15 +57,6 @@ button {
   <label>Nome</label><br>
   <input id="nome"><br><br>
 
-  <label>E-mail corporativo</label><br>
-  <input id="email" placeholder="@unimedcampinas.com.br"><br><br>
-
-  <label>Setor</label><br>
-  <input id="setor"><br><br>
-
-  <label>Unidade</label><br>
-  <input id="unidade"><br><br>
-
   <button id="btnIniciar">Iniciar Desafio</button>
 </section>
 
@@ -68,7 +64,8 @@ button {
 <section id="tela-jogo" class="hidden">
   <h3 id="titulo"></h3>
   <div id="perguntas"></div>
-  <button id="btnConcluir">Concluir</button>
+  <button id="btnConcluir">Concluir Regra</button>
+  <div id="mensagem" class="msg"></div>
 </section>
 
 </div>
@@ -78,6 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const telaLogin = document.getElementById("tela-login");
   const telaJogo  = document.getElementById("tela-jogo");
+  const titulo    = document.getElementById("titulo");
+  const perguntasDiv = document.getElementById("perguntas");
+  const mensagem  = document.getElementById("mensagem");
 
   const regras = [
     {
@@ -87,6 +87,14 @@ document.addEventListener("DOMContentLoaded", () => {
         { t: "Uso do celular não interfere na segurança.", c: false },
         { t: "A atenção faz parte da cultura de segurança.", c: true }
       ]
+    },
+    {
+      titulo: "Regra 02 – Olhos no Caminho",
+      perguntas: [
+        { t: "Observar o caminho ajuda a identificar riscos.", c: true },
+        { t: "Distração pode causar quedas.", c: true },
+        { t: "Olhar o caminho elimina riscos.", c: false }
+      ]
     }
   ];
 
@@ -94,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("btnIniciar").addEventListener("click", () => {
     if (!document.getElementById("nome").value) {
-      alert("Preencha seu nome");
+      mensagem.innerText = "Informe seu nome para iniciar.";
       return;
     }
     telaLogin.classList.add("hidden");
@@ -103,24 +111,39 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("btnConcluir").addEventListener("click", () => {
-    alert("Regra concluída com sucesso!");
+    mensagem.innerText = "✅ Regra concluída! Avançando...";
+    indice++;               // 🔑 AQUI ESTÁ A CORREÇÃO
+    setTimeout(() => {
+      carregarRegra();
+    }, 800);
   });
 
   function carregarRegra() {
+    mensagem.innerText = "";
+
+    if (indice >= regras.length) {
+      titulo.innerText = "🎉 Desafio concluído!";
+      perguntasDiv.innerHTML = "<p>Parabéns! Você concluiu todas as regras disponíveis.</p>";
+      document.getElementById("btnConcluir").classList.add("hidden");
+      return;
+    }
+
     const regra = regras[indice];
-    document.getElementById("titulo").innerText = regra.titulo;
+    titulo.innerText = regra.titulo;
 
     let html = "";
     regra.perguntas.forEach((p, i) => {
       html += `
         <div class="question">
           <p>${i + 1}. ${p.t}</p>
-          <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
-          <label><input type="radio" name="q${i}" value="false"> Falso</label>
+          <label><input type="radio" name="q${i}"> Verdadeiro</label><br>
+          <label><input type="radio" name="q${i}"> Falso</label>
         </div>
       `;
     });
-    document.getElementById("perguntas").innerHTML = html;
+
+    perguntasDiv.innerHTML = html;
+    document.getElementById("btnConcluir").classList.remove("hidden");
   }
 
 });
