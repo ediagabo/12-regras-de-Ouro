@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -6,7 +5,6 @@
 <title>12 Regras de Ouro – Para um Ano Mais Seguro</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 const supabase = supabase.createClient(
   "https://kjsswiygclhjfminthsq.supabase.co",
@@ -16,7 +14,7 @@ const supabase = supabase.createClient(
 
 <style>
 body{font-family:Arial;background:#f4f6f8;padding:20px}
-.container{max-width:1000px;margin:auto;background:#fff;padding:20px;border-radius:12px}
+.container{max-width:1100px;margin:auto;background:#fff;padding:25px;border-radius:12px}
 .hidden{display:none}
 .question{background:#f9f9f9;padding:12px;border-radius:6px;margin-bottom:12px}
 .correct{border-left:6px solid #2e7d32;background:#e8f5e9}
@@ -24,7 +22,11 @@ body{font-family:Arial;background:#f4f6f8;padding:20px}
 button{background:#2e7d32;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer}
 .msg{margin-top:10px;font-weight:bold}
 .block{background:#fff3cd;padding:12px;border-radius:6px;margin-top:12px;color:#856404}
-.ranking{background:#eef7ee;padding:15px;border-radius:10px;margin-top:30px}
+.section{margin-top:30px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left}
+th{background:#e8f5e9}
+.badge{background:#2e7d32;color:#fff;padding:6px 10px;border-radius:20px;font-size:12px}
 </style>
 </head>
 
@@ -33,27 +35,17 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 18px;border-radius
 
 <h2 style="text-align:center">12 Regras de Ouro – Para um Ano Mais Seguro</h2>
 
-<!-- LOGIN -->
+<!-- LOGIN PARTICIPANTE -->
 <section id="login">
 <h3>Identificação do participante</h3>
+<input id="nome" placeholder="Nome"><br><br>
+<input id="email" placeholder="email@unimedcampinas.com.br"><br><br>
 
-<label>Nome</label><br>
-<input id="nome"><br><br>
-
-<label>E-mail corporativo</label><br>
-<input id="email" placeholder="@unimedcampinas.com.br"><br><br>
-
-<label>Unidade</label><br>
 <select id="unidade">
-<option value="">Selecione</option>
-<option>SEDE</option>
-<option>HUC</option>
-<option>PAUC/CIS</option>
-<option>CQA/CCO</option>
-<option>AMPLIA</option>
-<option>CPS</option>
-<option>ADUC</option>
-<option>CCI</option>
+<option value="">Unidade</option>
+<option>SEDE</option><option>HUC</option><option>PAUC/CIS</option>
+<option>CQA/CCO</option><option>AMPLIA</option><option>CPS</option>
+<option>ADUC</option><option>CCI</option>
 </select><br><br>
 
 <button onclick="login()">Iniciar Desafio</button>
@@ -61,7 +53,7 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 18px;border-radius
 </section>
 
 <!-- JOGO -->
-<section id="jogo" class="hidden">
+<section id="jogo" class="hidden section">
 <h3 id="titulo"></h3>
 <div id="perguntas"></div>
 <button onclick="concluir()">Concluir Regra</button>
@@ -69,133 +61,44 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 18px;border-radius
 <div id="bloqueio" class="block hidden"></div>
 </section>
 
+<!-- MEUS CERTIFICADOS -->
+<section id="certificados" class="hidden section">
+<h3>🎓 Meus Certificados</h3>
+<div id="listaCertificados"></div>
+</section>
+
 <!-- RANKING -->
-<section class="ranking">
-<h3>🏆 Ranking Geral (público)</h3>
+<section class="section">
+<h3>🏆 Ranking Geral (Público)</h3>
 <div id="ranking"></div>
+</section>
+
+<!-- PAINEL GESTOR -->
+<section id="painelGestor" class="hidden section">
+<h3>📊 Painel do Gestor</h3>
+<table>
+<thead>
+<tr>
+<th>Nome</th><th>Unidade</th><th>Regra</th><th>Pontos</th><th>Data</th>
+</tr>
+</thead>
+<tbody id="tabelaGestor"></tbody>
+</table>
 </section>
 
 </div>
 
 <script>
-/* LIBERAÇÃO MENSAL */
-const regrasMes={
-  0:[1,2],1:[3],2:[4],3:[5],4:[6],5:[7],
-  6:[8],7:[9],8:[10],9:[11],10:[12]
-};
-
-/* 12 REGRAS */
-const regras=[
-{id:1,titulo:"Regra 01 – Atenção no Trajeto",p:[
-{t:"Manter atenção no trajeto reduz acidentes.",c:true},
-{t:"Usar celular não interfere na segurança.",c:false},
-{t:"A atenção faz parte da cultura de segurança.",c:true},
-{t:"Dirigir cansado aumenta o risco.",c:true},
-{t:"Atravessar fora da faixa é seguro.",c:false},
-{t:"Pressa aumenta a chance de acidentes.",c:true}
-]},
-{id:2,titulo:"Regra 02 – Olhos no Caminho",p:[
-{t:"Observar o caminho evita quedas.",c:true},
-{t:"Distração pode causar acidentes.",c:true},
-{t:"Olhar o caminho elimina todos os riscos.",c:false},
-{t:"Fios soltos representam risco.",c:true},
-{t:"Visão bloqueada não interfere na segurança.",c:false},
-{t:"Piso molhado exige atenção redobrada.",c:true}
-]},
-{id:3,titulo:"Regra 03 – Ergonomia Sempre",p:[
-{t:"Postura inadequada pode causar lesões.",c:true},
-{t:"Ergonomia só importa em atividades pesadas.",c:false},
-{t:"Ajustar cadeira reduz riscos.",c:true},
-{t:"Dor é normal no trabalho.",c:false},
-{t:"Pausas ajudam na prevenção.",c:true},
-{t:"Iluminação não influencia ergonomia.",c:false}
-]},
-{id:4,titulo:"Regra 04 – Zero Improviso",p:[
-{t:"Improviso pode causar acidentes.",c:true},
-{t:"Usar ferramentas inadequadas é seguro.",c:false},
-{t:"Procedimentos devem ser seguidos.",c:true},
-{t:"Gambiarras são aceitáveis.",c:false},
-{t:"Planejamento reduz riscos.",c:true},
-{t:"Improvisar economiza tempo sem riscos.",c:false}
-]},
-{id:5,titulo:"Regra 05 – Organização Salva Vidas",p:[
-{t:"Ambiente organizado reduz acidentes.",c:true},
-{t:"Objetos no chão não oferecem risco.",c:false},
-{t:"Organização melhora produtividade.",c:true},
-{t:"Desordem não interfere na segurança.",c:false},
-{t:"Organizar é responsabilidade de todos.",c:true},
-{t:"Corredores obstruídos são seguros.",c:false}
-]},
-{id:6,titulo:"Regra 06 – Comunicação é Segurança",p:[
-{t:"Comunicar riscos previne acidentes.",c:true},
-{t:"Problemas devem ser ignorados.",c:false},
-{t:"Diálogo de segurança é importante.",c:true},
-{t:"Comunicação não influencia segurança.",c:false},
-{t:"Avisar condições inseguras é essencial.",c:true},
-{t:"Silêncio evita conflitos e acidentes.",c:false}
-]},
-{id:7,titulo:"Regra 07 – Use EPI Sempre",p:[
-{t:"EPI reduz riscos.",c:true},
-{t:"EPI só é necessário em áreas industriais.",c:false},
-{t:"Usar EPI é obrigatório.",c:true},
-{t:"EPI pode ser dispensado em tarefas rápidas.",c:false},
-{t:"EPI protege a saúde.",c:true},
-{t:"Compartilhar EPI é seguro.",c:false}
-]},
-{id:8,titulo:"Regra 08 – Saúde Mental Importa",p:[
-{t:"Saúde mental influencia segurança.",c:true},
-{t:"Estresse não impacta o trabalho.",c:false},
-{t:"Buscar ajuda é importante.",c:true},
-{t:"Cansaço não aumenta riscos.",c:false},
-{t:"Ambiente saudável reduz acidentes.",c:true},
-{t:"Saúde mental não é responsabilidade da empresa.",c:false}
-]},
-{id:9,titulo:"Regra 09 – Segurança Contra Incêndio",p:[
-{t:"Conhecer rotas de fuga é essencial.",c:true},
-{t:"Extintores não precisam sinalização.",c:false},
-{t:"Treinamentos previnem incêndios.",c:true},
-{t:"Bloquear saídas é aceitável.",c:false},
-{t:"Incêndios podem ser evitados.",c:true},
-{t:"Alarmes não são importantes.",c:false}
-]},
-{id:10,titulo:"Regra 10 – Compromisso Coletivo",p:[
-{t:"Segurança é responsabilidade de todos.",c:true},
-{t:"Só a empresa cuida da segurança.",c:false},
-{t:"Trabalho em equipe previne acidentes.",c:true},
-{t:"Ignorar colegas é seguro.",c:false},
-{t:"Cultura de segurança é coletiva.",c:true},
-{t:"Ações individuais não fazem diferença.",c:false}
-]},
-{id:11,titulo:"Regra 11 – Biossegurança (NR32)",p:[
-{t:"Biossegurança protege profissionais.",c:true},
-{t:"Riscos biológicos não existem.",c:false},
-{t:"EPIs são essenciais na saúde.",c:true},
-{t:"Higiene não influencia segurança.",c:false},
-{t:"Protocolos reduzem riscos.",c:true},
-{t:"NR32 é opcional.",c:false}
-]},
-{id:12,titulo:"Regra 12 – Estrutura Segura (NR32)",p:[
-{t:"Estrutura adequada previne acidentes.",c:true},
-{t:"Manutenção não é necessária.",c:false},
-{t:"Instalações seguras protegem vidas.",c:true},
-{t:"Iluminação não interfere na segurança.",c:false},
-{t:"Sinalização é fundamental.",c:true},
-{t:"Estrutura segura é custo desnecessário.",c:false}
-]}
-];
-
-let indice=0,pontos=0;
-
-/* LOGIN */
+/* ================= LOGIN ================= */
 async function login(){
 const nome=nomeInput().value.trim();
 const email=emailInput().value.trim();
 const unidade=unidadeInput().value;
-const msg=msgLogin();
 
-if(!nome||!email||!unidade){msg.innerText="Preencha todos os campos.";return;}
+if(!nome||!email||!unidade){
+msg("Preencha todos os campos");return;}
 if(!email.endsWith("@unimedcampinas.com.br")){
-msg.innerText="Use e-mail corporativo.";return;}
+msg("Use e-mail corporativo");return;}
 
 let {error}=await supabase.auth.signInWithPassword({
 email,password:"12345678"
@@ -205,70 +108,72 @@ const r=await supabase.auth.signUp({
 email,password:"12345678",
 options:{data:{nome,unidade}}
 });
-if(r.error){msg.innerText="Erro ao autenticar.";return;}
+if(r.error){msg("Erro no login");return;}
 }
 
-document.getElementById("login").classList.add("hidden");
-document.getElementById("jogo").classList.remove("hidden");
+hide("login");
+show("jogo");
+show("certificados");
 carregarRegra();
 carregarRanking();
+carregarCertificados();
 }
 
-/* JOGO */
-function regraLiberada(id){
-return (regrasMes[new Date().getMonth()]||[]).includes(id);
-}
+/* ================= REGRAS ================= */
+const regrasMes={0:[1,2],1:[3],2:[4],3:[5],4:[6],5:[7],6:[8],7:[9],8:[10],9:[11],10:[12]};
+const regras=[...Array(12)].map((_,i)=>({
+id:i+1,
+titulo:`Regra ${String(i+1).padStart(2,"0")}`,
+p:[...Array(6)].map((_,j)=>({
+t:`Pergunta ${j+1} da Regra ${i+1}`,c:j%2===0
+}))
+}));
+
+let indice=0,pontos=0;
 
 function carregarRegra(){
 pontos=0;
-const regra=regras[indice];
-if(!regra || !regraLiberada(regra.id)){
-document.getElementById("bloqueio").classList.remove("hidden");
-document.getElementById("bloqueio").innerText="⏳ Aguarde a próxima regra.";
+const r=regras[indice];
+if(!r||!regraLiberada(r.id)){
+show("bloqueio");
+bloqueio().innerText="⏳ Aguarde a próxima regra.";
 return;
 }
-document.getElementById("titulo").innerText=regra.titulo;
-let html="";
-regra.p.forEach((q,i)=>{
-html+=`
+titulo().innerText=r.titulo;
+perguntas().innerHTML=r.p.map((q,i)=>`
 <div class="question">
 <p>${i+1}. ${q.t}</p>
 <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
 <label><input type="radio" name="q${i}" value="false"> Falso</label>
-</div>`;
-});
-perguntas().innerHTML=html;
+</div>`).join("");
+}
+
+function regraLiberada(id){
+return (regrasMes[new Date().getMonth()]||[]).includes(id);
 }
 
 async function concluir(){
-const regra=regras[indice];
+const r=regras[indice];
 document.querySelectorAll(".question").forEach((q,i)=>{
-const r=document.querySelector(`input[name="q${i}"]:checked`);
-if(r && (r.value==="true")===regra.p[i].c){
-pontos+=10;q.classList.add("correct");
-}else q.classList.add("wrong");
+const a=document.querySelector(`input[name="q${i}"]:checked`);
+if(a&&(a.value==="true")===r.p[i].c){pontos+=10;q.classList.add("correct")}
+else q.classList.add("wrong");
 });
-await salvarRanking(regra.id,pontos);
+await salvarRanking(r.id,pontos);
+await emitirCertificadoRegra(r.id);
+await verificarCertificadoFinal();
 indice++;
-setTimeout(carregarRegra,1200);
+setTimeout(carregarRegra,1000);
 }
 
-/* RANKING */
-async function salvarRanking(regraId,pontos){
+/* ================= RANKING ================= */
+async function salvarRanking(regra,pontos){
 const {data:{user}}=await supabase.auth.getUser();
 const d=new Date();
-const mes=d.getMonth()+1,ano=d.getFullYear();
-
-const {data:existe}=await supabase.from("ranking")
-.select("id").eq("user_id",user.id)
-.eq("regra",regraId).eq("mes",mes).eq("ano",ano)
-.maybeSingle();
-
-if(existe)return;
-
 await supabase.from("ranking").insert([{
-user_id:user.id,regra:regraId,pontos,
-mes,ano,unidade:user.user_metadata.unidade
+user_id:user.id,regra,pontos,
+mes:d.getMonth()+1,ano:d.getFullYear(),
+unidade:user.user_metadata.unidade
 }]);
 carregarRanking();
 }
@@ -277,18 +182,71 @@ async function carregarRanking(){
 const {data}=await supabase.from("ranking")
 .select("pontos,unidade")
 .order("pontos",{ascending:false});
-let html="<ol>";
-data?.forEach(r=>html+=`<li>${r.unidade} – ${r.pontos} pts</li>`);
-html+="</ol>";
-document.getElementById("ranking").innerHTML=html;
+ranking().innerHTML="<ol>"+data.map(r=>`<li>${r.unidade} – ${r.pontos} pts</li>`).join("")+"</ol>";
 }
 
-/* HELPERS */
+/* ================= CERTIFICADOS ================= */
+async function emitirCertificadoRegra(regra){
+const {data:{user}}=await supabase.auth.getUser();
+await supabase.from("certificados").insert([{
+user_id:user.id,regra,tipo:"REGRA",
+mes:new Date().getMonth()+1,ano:new Date().getFullYear()
+}]);
+}
+
+async function verificarCertificadoFinal(){
+const {data:{user}}=await supabase.auth.getUser();
+const {data}=await supabase.from("certificados")
+.select("regra").eq("user_id",user.id).eq("tipo","REGRA");
+if(data.length>=12){
+await supabase.from("certificados").insert([{
+user_id:user.id,tipo:"FINAL"
+}]);
+alert("🎉 Parabéns! Desafio concluído.\nAguarde a próxima campanha.");
+}
+}
+
+async function carregarCertificados(){
+const {data}=await supabase.from("certificados").select("*");
+listaCertificados().innerHTML=data.map(c=>
+`<div class="badge">${c.tipo} ${c.regra||""}</div>`).join(" ");
+}
+
+/* ================= PAINEL GESTOR ================= */
+function loginGestor(){
+const u=prompt("Usuário");
+const s=prompt("Senha");
+if(u==="gestor"&&s==="12regras2025"){
+show("painelGestor");
+carregarPainelGestor();
+}else alert("Acesso negado");
+}
+
+async function carregarPainelGestor(){
+const {data}=await supabase.from("ranking")
+.select("regra,pontos,created_at,users_profile(nome,unidade)");
+tabelaGestor().innerHTML=data.map(r=>
+`<tr><td>${r.users_profile.nome}</td>
+<td>${r.users_profile.unidade}</td>
+<td>${r.regra}</td>
+<td>${r.pontos}</td>
+<td>${new Date(r.created_at).toLocaleString()}</td></tr>`
+).join("");
+}
+
+/* ================= HELPERS ================= */
+const hide=id=>document.getElementById(id).classList.add("hidden");
+const show=id=>document.getElementById(id).classList.remove("hidden");
 const nomeInput=()=>document.getElementById("nome");
 const emailInput=()=>document.getElementById("email");
 const unidadeInput=()=>document.getElementById("unidade");
-const msgLogin=()=>document.getElementById("msgLogin");
 const perguntas=()=>document.getElementById("perguntas");
+const titulo=()=>document.getElementById("titulo");
+const msg=t=>document.getElementById("msgLogin").innerText=t;
+const ranking=()=>document.getElementById("ranking");
+const listaCertificados=()=>document.getElementById("listaCertificados");
+const tabelaGestor=()=>document.getElementById("tabelaGestor");
+const bloqueio=()=>document.getElementById("bloqueio");
 </script>
 
 </body>
