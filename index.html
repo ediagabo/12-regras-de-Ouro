@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -68,83 +69,17 @@ button:hover{background:#256428}
   margin:0 auto 15px;
   max-width:140px;
 }
-<style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f6f8;
-  margin:0;
-  padding:20px;
-}
-.container{
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-}
-h1,h2,h3{text-align:center}
-.hidden{display:none}
-input,select{
-  width:100%;
+.selo{
+  width:140px;
   padding:10px;
-  margin-bottom:12px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-button{
-  background:#2e7d32;
-  color:#fff;
-  border:none;
-  padding:12px 18px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-}
-button:hover{background:#256428}
-.question{
-  background:#fafafa;
-  padding:12px;
-  border-radius:6px;
-  margin-bottom:12px;
-  border-left:6px solid #ccc;
-}
-.question.correct{
-  border-left-color:#2e7d32;
-  background:#e8f5e9;
-}
-.question.wrong{
-  border-left-color:#c62828;
-  background:#fdecea;
-}
-.ranking{
-  background:#f1f8e9;
-  padding:15px;
   border-radius:8px;
-  margin-top:30px;
-}
-.msg{
-  margin-top:15px;
+  background:#e8f5e9;
+  border:2px solid #2e7d32;
+  text-align:center;
   font-weight:bold;
-  color:#2e7d32;
-}
-.escudo{
-  display:block;
-  margin:0 auto 15px;
-  max-width:140px;
-}
-.selo {
-  width: 140px;
-  padding: 10px;
-  border-radius: 8px;
-  background: #e8f5e9;
-  border: 2px solid #2e7d32;
-  text-align: center;
-  font-weight: bold;
-  font-size: 13px;
+  font-size:13px;
 }
 </style>
-
-
 </head>
 
 <body>
@@ -194,29 +129,18 @@ button:hover{background:#256428}
   <div id="selos" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
 </div>
 
+</div>
+
 <script>
 let jogador={}, pontos=0, regraAtual=0;
 
-/* =========================
-   MAPA MENSAL DAS REGRAS
-========================= */
+/* MAPA MENSAL */
 const regrasPorMes = {
-  0: [0,1],   // Janeiro → Regra 1 e 2
-  1: [2],     // Fevereiro → Regra 3
-  2: [3],     // Março → Regra 4
-  3: [4],     // Abril → Regra 5
-  4: [5],     // Maio → Regra 6
-  5: [6],     // Junho → Regra 7
-  6: [7],     // Julho → Regra 8
-  7: [8],     // Agosto → Regra 9
-  8: [9],     // Setembro → Regra 10
-  9: [10],    // Outubro → Regra 11
-  10:[11]     // Novembro → Regra 12
+  0:[0,1],1:[2],2:[3],3:[4],4:[5],5:[6],
+  6:[7],7:[8],8:[9],9:[10],10:[11]
 };
 
-/* =========================
-   REGRAS (já existentes)
-========================= */
+/* REGRAS */
 const regras = [
   {titulo:"Regra 01 – Atenção no Trajeto",p:[
     ["Manter atenção no trajeto reduz acidentes.",true],
@@ -316,12 +240,8 @@ const regras = [
   ]}
 ];
 
-/* =========================
-   FUNÇÕES
-========================= */
-function regraLiberada(index){
-  const mesAtual = new Date().getMonth();
-  return regrasPorMes[mesAtual]?.includes(index);
+function regraLiberada(i){
+  return regrasPorMes[new Date().getMonth()]?.includes(i);
 }
 
 function start(){
@@ -329,8 +249,7 @@ function start(){
   const unidade=document.getElementById("unidade").value;
   if(!nome||!unidade){alert("Preencha nome e unidade");return;}
   jogador={nome,unidade};
-  pontos=0;
-  regraAtual=0;
+  pontos=0; regraAtual=0;
   document.getElementById("login").classList.add("hidden");
   document.getElementById("jogo").classList.remove("hidden");
   carregarRegra();
@@ -350,11 +269,11 @@ function carregarRegra(){
   div.innerHTML="";
   r.p.forEach((q,i)=>{
     div.innerHTML+=`
-    <div class="question">
-      <p>${i+1}. ${q[0]}</p>
-      <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
-      <label><input type="radio" name="q${i}" value="false"> Falso</label>
-    </div>`;
+      <div class="question">
+        <p>${i+1}. ${q[0]}</p>
+        <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
+        <label><input type="radio" name="q${i}" value="false"> Falso</label>
+      </div>`;
   });
 }
 
@@ -367,13 +286,12 @@ function concluirRegra(){
     }else q.classList.add("wrong");
   });
   salvarRanking();
+  salvarSelo(regraAtual);
   document.getElementById("mensagem").innerText=
     `Regra concluída! Pontuação acumulada: ${pontos} pontos.`;
   regraAtual++;
   setTimeout(carregarRegra,1500);
 }
-
-
 
 function salvarRanking(){
   let r=JSON.parse(localStorage.getItem("ranking"))||[];
@@ -390,47 +308,29 @@ function carregarRanking(){
   h+="</ol>";
   document.getElementById("ranking").innerHTML=h;
 }
-carregarRanking();
-  function salvarSelo(regraIndex){
-  let selos = JSON.parse(localStorage.getItem("selos")) || [];
-  if(!selos.includes(regraIndex)){
-    selos.push(regraIndex);
-    localStorage.setItem("selos", JSON.stringify(selos));
-  }
-function salvarSelo(regraIndex){
-  let selos = JSON.parse(localStorage.getItem("selos")) || [];
-  if(!selos.includes(regraIndex)){
-    selos.push(regraIndex);
-    localStorage.setItem("selos", JSON.stringify(selos));
-  }
+
+function salvarSelo(i){
+  let s=JSON.parse(localStorage.getItem("selos"))||[];
+  if(!s.includes(i)){s.push(i);}
+  localStorage.setItem("selos",JSON.stringify(s));
   carregarSelos();
 }
 
 function carregarSelos(){
-  const div = document.getElementById("selos");
-  if(!div) return;
-
-  let selos = JSON.parse(localStorage.getItem("selos")) || [];
-  div.innerHTML = "";
-
-  if(selos.length === 0){
-    div.innerHTML = "<p>Nenhum selo conquistado ainda.</p>";
+  const d=document.getElementById("selos");
+  let s=JSON.parse(localStorage.getItem("selos"))||[];
+  d.innerHTML="";
+  if(!s.length){
+    d.innerHTML="<p>Nenhum selo conquistado ainda.</p>";
     return;
   }
-
-  selos.forEach(i=>{
-    div.innerHTML += `
-      <div class="selo">
-        🏅<br>
-        ${regras[i].titulo}
-      </div>
-    `;
+  s.forEach(i=>{
+    d.innerHTML+=`<div class="selo">🏅<br>${regras[i].titulo}</div>`;
   });
 }
 
 carregarRanking();
 carregarSelos();
-
 </script>
 
 </body>
