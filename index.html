@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
@@ -139,6 +138,41 @@ const regrasPorMes = {
   0:[0,1],1:[2],2:[3],3:[4],4:[5],5:[6],
   6:[7],7:[8],8:[9],9:[10],10:[11]
 };
+  /* =========================
+   NÍVEIS DE PREVENÇÃO
+========================= */
+const niveis = [
+  { nivel: 1, nome: "Atenção Básica", regras: [0,1] },
+  { nivel: 2, nome: "Prevenção Essencial", regras: [2,3,4,5] },
+  { nivel: 3, nome: "Segurança Estruturada", regras: [6,7,8,9] },
+  { nivel: 4, nome: "Saúde Segura", regras: [10,11] }
+];
+function verificarCertificadoNivel(){
+  const selos = JSON.parse(localStorage.getItem("selos")) || [];
+  let certificados = JSON.parse(localStorage.getItem("certificados")) || [];
+
+  niveis.forEach(nivel=>{
+    const concluiuNivel = nivel.regras.every(r => selos.includes(r));
+    const jaGerado = certificados.includes(nivel.nivel);
+
+    if(concluiuNivel && !jaGerado){
+      certificados.push(nivel.nivel);
+      localStorage.setItem("certificados", JSON.stringify(certificados));
+      gerarCertificado(nivel);
+    }
+  });
+}
+  function gerarCertificado(nivel){
+  alert(
+    `🎓 CERTIFICADO CONQUISTADO!\n\n` +
+    `${jogador.nome}\n` +
+    `concluiu o ${nivel.nivel}º Nível da Prevenção\n` +
+    `${nivel.nome}\n\n` +
+    `Campanha: 12 Regras de Ouro para um Ano Mais Seguro`
+  );
+}
+
+
 
 /* REGRAS */
 const regras = [
@@ -287,6 +321,8 @@ function concluirRegra(){
   });
   salvarRanking();
   salvarSelo(regraAtual);
+  verificarCertificadoNivel();
+
   document.getElementById("mensagem").innerText=
     `Regra concluída! Pontuação acumulada: ${pontos} pontos.`;
   regraAtual++;
