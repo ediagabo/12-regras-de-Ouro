@@ -1,108 +1,147 @@
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>12 Regras de Ouro – Para um Ano Mais Seguro</title>
+<meta charset="UTF-8" />
+<title>12 Regras de Ouro – Unimed Campinas</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 body { font-family: Arial; background:#f4f6f8; padding:20px }
-.container { max-width:900px; margin:auto; background:#fff; padding:20px; border-radius:10px }
+.container { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:12px }
+button { background:#2e7d32; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer }
 .hidden { display:none }
-button { background:#2e7d32; color:#fff; border:none; padding:10px 16px; border-radius:6px; cursor:pointer }
-input, select { padding:8px; width:100%; margin-bottom:10px }
-.ranking { background:#f1f8e9; padding:15px; border-radius:8px; margin-top:20px }
+.rule { margin-top:20px }
+.correct { background:#e8f5e9; padding:10px; border-left:5px solid green }
+.wrong { background:#fdecea; padding:10px; border-left:5px solid red }
 </style>
 </head>
 
 <body>
 <div class="container">
 
-<h2 style="text-align:center">12 Regras de Ouro – Para um Ano Mais Seguro</h2>
+<h2>12 Regras de Ouro – Para um Ano Mais Seguro</h2>
 
-<!-- LOGIN -->
-<section id="login">
-  <h3>Identificação</h3>
-  <input id="email" placeholder="email@unimedcampinas.com.br">
-  <button onclick="login()">Entrar</button>
-</section>
+<div id="login">
+  <input id="nome" placeholder="Nome completo"><br><br>
+  <input id="email" placeholder="email@unimedcampinas.com.br"><br><br>
 
-<!-- JOGO -->
-<section id="jogo" class="hidden">
-  <h3>🎮 Jogo liberado</h3>
-  <p>Usuário autenticado com sucesso.</p>
-  <button onclick="salvarRanking()">Salvar ranking (teste)</button>
-</section>
+  <select id="unidade">
+    <option value="">Selecione a unidade</option>
+    <option>SEDE</option>
+    <option>HUC</option>
+    <option>PAUC/CIS</option>
+    <option>CQA/CCO</option>
+    <option>AMPLIA</option>
+    <option>CPS</option>
+    <option>ADUC</option>
+    <option>CCI</option>
+  </select><br><br>
 
-<!-- RANKING -->
-<section class="ranking">
-  <h3>🏆 Ranking Público</h3>
-  <div id="ranking"></div>
-</section>
+  <button onclick="start()">Iniciar Desafio</button>
+</div>
+
+<div id="game" class="hidden">
+  <h3 id="ruleTitle"></h3>
+  <p id="question"></p>
+
+  <label><input type="radio" name="answer" value="true"> Verdadeiro</label><br>
+  <label><input type="radio" name="answer" value="false"> Falso</label><br><br>
+
+  <button onclick="next()">Confirmar</button>
+</div>
+
+<hr>
+<h3>🏆 Ranking Geral (Público)</h3>
+<ul id="ranking"></ul>
 
 </div>
 
 <script>
-const supabaseClient = supabase.createClient(
+const supabase = supabase.createClient(
   "https://kjsswiygclhjfminthsq.supabase.co",
   "sb_publishable_IHD7uQDeWUPaRPDIT_BfFQ_nb0U5mNI"
 );
 
-/* LOGIN OTP */
-async function login() {
-  const email = document.getElementById("email").value.trim();
+const rules = [
+ { t:"Regra 1 – Atenção no Caminho", q:"Olhar o caminho reduz risco de queda.", a:true },
+ { t:"Regra 2 – Olhos no Caminho", q:"Distração pode causar acidentes.", a:true }
+];
+
+let user = null;
+let current = 0;
+let score = 0;
+
+async function start() {
+  const nome = nomeInput.value = document.getElementById("nome").value;
+  const email = document.getElementById("email").value;
+  const unidade = document.getElementById("unidade").value;
 
   if (!email.endsWith("@unimedcampinas.com.br")) {
-    alert("Use e-mail corporativo");
+    alert("Use e-mail corporativo.");
     return;
   }
 
-  const { error } = await supabaseClient.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.href }
-  });
+  let { data } = await supabase
+    .from("users_profile")
+    .select("*")
+    .eq("email", email)
+    .single();
 
-  if (error) alert(error.message);
-  else alert("📩 Link enviado para seu e-mail");
-}
-
-/* CONTROLE DE SESSÃO */
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (session) {
-    document.getElementById("login").classList.add("hidden");
-    document.getElementById("jogo").classList.remove("hidden");
-    carregarRanking();
+  if (!data) {
+    const res = await supabase.from("users_profile").insert({ nome, email, unidade }).select().single();
+    user = res.data;
+  } else {
+    user = data;
   }
-});
 
-/* SALVAR RANKING (TESTE) */
-async function salvarRanking() {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) return alert("Usuário não autenticado");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  show();
+}
 
-  const { error } = await supabaseClient.from("ranking").insert({
+function show() {
+  document.getElementById("ruleTitle").innerText = rules[current].t;
+  document.getElementById("question").innerText = rules[current].q;
+}
+
+async function next() {
+  const answer = document.querySelector('input[name="answer"]:checked');
+  if (!answer) return alert("Selecione uma opção");
+
+  const correct = answer.value === String(rules[current].a);
+  const points = correct ? 10 : 0;
+  score += points;
+
+  await supabase.from("ranking").insert({
     user_id: user.id,
-    pontos: 60,
-    unidade: "SEDE"
+    nome: user.nome,
+    email: user.email,
+    unidade: user.unidade,
+    regra: current + 1,
+    pontos: points
   });
 
-  if (error) alert(error.message);
-  else alert("Ranking salvo");
+  current++;
+  if (current < rules.length) show();
+  else alert("Desafio concluído! Pontos: " + score);
+
+  loadRanking();
 }
 
-/* CARREGAR RANKING */
-async function carregarRanking() {
-  const { data, error } = await supabaseClient
+async function loadRanking() {
+  const { data } = await supabase
     .from("ranking")
-    .select("pontos, unidade")
-    .order("pontos", { ascending:false });
+    .select("nome, unidade, pontos");
 
-  if (error) return;
-
-  document.getElementById("ranking").innerHTML =
-    "<ol>" + data.map(r => `<li>${r.unidade} – ${r.pontos}</li>`).join("") + "</ol>";
+  const list = document.getElementById("ranking");
+  list.innerHTML = "";
+  data.forEach(r => {
+    list.innerHTML += `<li>${r.nome} (${r.unidade}) – ${r.pontos} pts</li>`;
+  });
 }
+
+loadRanking();
 </script>
 
 </body>
