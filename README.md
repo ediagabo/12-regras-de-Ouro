@@ -1,10 +1,11 @@
-
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>12 Regras de Ouro – Para um Ano Mais Seguro</title>
 
+<!-- SUPABASE (UMA ÚNICA VEZ) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -43,14 +44,14 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 16px;border-radius
     <option>CCI</option>
   </select><br><br>
 
-  <button onclick="start()">Iniciar Desafio</button>
+  <button id="btnStart">Iniciar Desafio</button>
 </section>
 
 <!-- JOGO -->
 <section id="game" class="hidden">
   <h3 id="titulo"></h3>
   <div id="perguntas"></div>
-  <button onclick="concluir()">Concluir Regra</button>
+  <button id="btnNext">Concluir Regra</button>
 </section>
 
 <!-- RANKING -->
@@ -62,13 +63,13 @@ button{background:#2e7d32;color:#fff;border:none;padding:10px 16px;border-radius
 </div>
 
 <script>
-/* SUPABASE */
+/* ================== SUPABASE ================== */
 const supabase = window.supabase.createClient(
   "https://kjsswiygclhjfminthsq.supabase.co",
   "sb_publishable_IHD7uQDeWUPaRPDIT_BfFQ_nb0U5mNI"
 );
 
-/* ELEMENTOS */
+/* ================== ELEMENTOS ================== */
 const nomeEl = document.getElementById("nome");
 const emailEl = document.getElementById("email");
 const unidadeEl = document.getElementById("unidade");
@@ -78,19 +79,22 @@ const tituloEl = document.getElementById("titulo");
 const perguntasEl = document.getElementById("perguntas");
 const rankingEl = document.getElementById("ranking");
 
-/* ESTADO */
+document.getElementById("btnStart").addEventListener("click", iniciar);
+document.getElementById("btnNext").addEventListener("click", concluir);
+
+/* ================== ESTADO ================== */
 let usuario = {};
 let regraAtual = 0;
 
-/* REGRAS (exemplo 2, depois expandimos) */
+/* ================== REGRAS ================== */
 const regras = [
 {
   titulo:"Regra 01 – Atenção no Trajeto",
   perguntas:[
     ["Manter atenção reduz acidentes", true],
     ["Celular não interfere", false],
+    ["Pressa aumenta riscos", true],
     ["Dirigir cansado é seguro", false],
-    ["Pressa aumenta risco", true],
     ["Faixa de pedestre é importante", true],
     ["Ignorar riscos não causa acidentes", false]
   ]
@@ -108,8 +112,8 @@ const regras = [
 }
 ];
 
-/* LOGIN */
-function start(){
+/* ================== FUNÇÕES ================== */
+function iniciar(){
   const nome = nomeEl.value.trim();
   const email = emailEl.value.trim();
   const unidade = unidadeEl.value;
@@ -125,7 +129,6 @@ function start(){
   carregarRegra();
 }
 
-/* CARREGAR REGRA */
 function carregarRegra(){
   if(!regras[regraAtual]){
     tituloEl.innerText = "🎉 Desafio concluído!";
@@ -146,12 +149,11 @@ function carregarRegra(){
   });
 }
 
-/* CONCLUIR */
 async function concluir(){
   let pontos = 0;
 
   regras[regraAtual].perguntas.forEach((p,i)=>{
-    const marcada = document.querySelector(`input[name="q${i}"]:checked`);
+    const marcada = document.querySelector(\`input[name="q\${i}"]:checked\`);
     if(marcada && String(p[1]) === marcada.value) pontos += 10;
   });
 
@@ -168,19 +170,14 @@ async function concluir(){
   carregarRegra();
 }
 
-/* RANKING */
 async function carregarRanking(){
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("ranking")
     .select("nome, unidade, pontos")
     .order("pontos",{ascending:false});
 
   rankingEl.innerHTML = "";
-
-  if(error || !data){
-    rankingEl.innerHTML="<li>Sem dados</li>";
-    return;
-  }
+  if(!data) return;
 
   data.forEach(r=>{
     rankingEl.innerHTML += `<li>${r.nome} (${r.unidade}) – ${r.pontos} pts</li>`;
