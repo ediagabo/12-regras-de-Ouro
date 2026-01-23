@@ -68,7 +68,21 @@ button:hover{background:#256428}
   margin:0 auto 15px;
   max-width:140px;
 }
+  <style>
+/* ... SEU CSS QUE JÁ EXISTE ... */
+
+.selo {
+  width: 140px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #e8f5e9;
+  border: 2px solid #2e7d32;
+  text-align: center;
+  font-weight: bold;
+  font-size: 13px;
+}
 </style>
+
 </head>
 
 <body>
@@ -112,6 +126,10 @@ button:hover{background:#256428}
   <div id="ranking"></div>
 </div>
 
+<!-- SELOS -->
+<div class="ranking">
+  <h3>🏅 Selos Conquistados</h3>
+  <div id="selos" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
 </div>
 
 <script>
@@ -292,6 +310,8 @@ function concluirRegra(){
   regraAtual++;
   setTimeout(carregarRegra,1500);
 }
+salvarSelo(regraAtual);
+
 
 function salvarRanking(){
   let r=JSON.parse(localStorage.getItem("ranking"))||[];
@@ -309,8 +329,40 @@ function carregarRanking(){
   document.getElementById("ranking").innerHTML=h;
 }
 carregarRanking();
-</script>
+  function salvarSelo(regraIndex){
+  let selos = JSON.parse(localStorage.getItem("selos")) || [];
+  if(!selos.includes(regraIndex)){
+    selos.push(regraIndex);
+    localStorage.setItem("selos", JSON.stringify(selos));
+  }
+  carregarSelos();
+    function carregarSelos(){
+  const div = document.getElementById("selos");
+  if(!div) return;
 
+  let selos = JSON.parse(localStorage.getItem("selos")) || [];
+  div.innerHTML = "";
+
+  if(selos.length === 0){
+    div.innerHTML = "<p>Nenhum selo conquistado ainda.</p>";
+    return;
+  }
+
+  selos.forEach(i=>{
+    div.innerHTML += `
+      <div class="selo">
+        🏅<br>
+        ${regras[i].titulo}
+      </div>
+    `;
+  });
+}
+carregarRanking();
+carregarSelos();
+
+
+
+</script>
 
 </body>
 </html>
