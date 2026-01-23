@@ -115,113 +115,142 @@ button:hover{background:#256428}
 </div>
 
 <script>
-let jogador={},pontos=0,regraAtual=0;
+let jogador={}, pontos=0, regraAtual=0;
 
-const regras=[
-{titulo:"Regra 01 – Atenção no Trajeto",p:[
-["Manter atenção no trajeto reduz acidentes.",true],
-["Usar celular ao caminhar não traz riscos.",false],
-["Distração aumenta o risco de quedas.",true],
-["Cansaço não interfere na segurança.",false],
-["Olhar o caminho ajuda a identificar riscos.",true],
-["Ignorar obstáculos é seguro.",false]
-]},
-{titulo:"Regra 02 – Olhos no Caminho",p:[
-["Observar o caminho ajuda a identificar riscos.",true],
-["Distrações aumentam risco de quedas.",true],
-["Olhar o caminho elimina todos os riscos.",false],
-["Pisos molhados exigem atenção redobrada.",true],
-["Caminhar olhando o celular é seguro.",false],
-["Objetos no chão causam tropeços.",true]
-]},
-{titulo:"Regra 03 – Ergonomia Sempre",p:[
-["Ajustar cadeira reduz desconfortos.",true],
-["Dor faz parte do trabalho.",false],
-["Postura inadequada gera lesões.",true],
-["Pausas ajudam a saúde.",true],
-["Ergonomia só vale para quem senta.",false],
-["Ergonomia melhora produtividade.",true]
-]},
-{titulo:"Regra 04 – Zero Improviso",p:[
-["Improvisar ferramentas gera riscos.",true],
-["Usar equipamento errado é seguro.",false],
-["Improviso é aceitável se rápido.",false],
-["Planejar reduz erros.",true],
-["Falta de equipamento justifica improviso.",false],
-["Seguir procedimentos previne acidentes.",true]
-]},
-{titulo:"Regra 05 – Organização Salva Vidas",p:[
-["Ambientes organizados reduzem acidentes.",true],
-["Objetos fora do lugar não interferem.",false],
-["Organização ajuda em emergências.",true],
-["Cabos soltos aumentam quedas.",true],
-["Organização é só da limpeza.",false],
-["Corredores livres são medida de segurança.",true]
-]},
-{titulo:"Regra 06 – Comunicação é Segurança",p:[
-["Comunicar riscos previne acidentes.",true],
-["Problemas devem ser comunicados.",true],
-["Comunicação não influencia segurança.",false],
-["Silêncio pode gerar acidentes.",true],
-["Só líderes comunicam riscos.",false],
-["Comunicação fortalece a segurança.",true]
-]},
-{titulo:"Regra 07 – Use EPI Sempre",p:[
-["EPI reduz riscos.",true],
-["EPI só em atividades perigosas.",false],
-["Não usar EPI causa acidentes.",true],
-["EPI deve estar em bom estado.",true],
-["EPI é opcional se risco for pequeno.",false],
-["EPI protege o trabalhador.",true]
-]},
-{titulo:"Regra 08 – Saúde Mental Importa",p:[
-["Saúde mental influencia segurança.",true],
-["Estresse aumenta risco.",true],
-["Falar de saúde mental é fraqueza.",false],
-["Descanso melhora concentração.",true],
-["Ignorar cansaço não traz impacto.",false],
-["Bem-estar ajuda decisões seguras.",true]
-]},
-{titulo:"Regra 09 – Segurança Contra Incêndio",p:[
-["Conhecer rotas é prevenção.",true],
-["Extintores devem estar acessíveis.",true],
-["Incêndios não acontecem em locais organizados.",false],
-["Treinamentos ajudam na emergência.",true],
-["Bloquear saídas é aceitável.",false],
-["Prevenção reduz danos.",true]
-]},
-{titulo:"Regra 10 – Compromisso Coletivo",p:[
-["Segurança é responsabilidade de todos.",true],
-["Ignorar atitudes inseguras é aceitável.",false],
-["Trabalho em equipe fortalece segurança.",true],
-["Cada pessoa influencia o ambiente.",true],
-["Só a empresa é responsável.",false],
-["Compromisso coletivo reduz acidentes.",true]
-]},
-{titulo:"Regra 11 – Biossegurança (NR32)",p:[
-["NR32 protege trabalhadores da saúde.",true],
-["EPI faz parte da biossegurança.",true],
-["Riscos biológicos não exigem cuidado.",false],
-["Higienização previne contaminação.",true],
-["Acidentes biológicos devem ser comunicados.",true],
-["Biossegurança protege pacientes.",true]
-]},
-{titulo:"Regra 12 – Estrutura Segura",p:[
-["Estrutura segura reduz riscos.",true],
-["Manutenção influencia segurança.",true],
-["Estrutura danificada não oferece risco.",false],
-["Sinalização previne acidentes.",true],
-["Ignorar falhas é aceitável.",false],
-["Estrutura segura protege todos.",true]
-]}
+/* =========================
+   MAPA MENSAL DAS REGRAS
+========================= */
+const regrasPorMes = {
+  0: [0,1],   // Janeiro → Regra 1 e 2
+  1: [2],     // Fevereiro → Regra 3
+  2: [3],     // Março → Regra 4
+  3: [4],     // Abril → Regra 5
+  4: [5],     // Maio → Regra 6
+  5: [6],     // Junho → Regra 7
+  6: [7],     // Julho → Regra 8
+  7: [8],     // Agosto → Regra 9
+  8: [9],     // Setembro → Regra 10
+  9: [10],    // Outubro → Regra 11
+  10:[11]     // Novembro → Regra 12
+};
+
+/* =========================
+   REGRAS (já existentes)
+========================= */
+const regras = [
+  {titulo:"Regra 01 – Atenção no Trajeto",p:[
+    ["Manter atenção no trajeto reduz acidentes.",true],
+    ["Usar celular ao caminhar não traz riscos.",false],
+    ["Distração aumenta o risco de quedas.",true],
+    ["Cansaço não interfere na segurança.",false],
+    ["Olhar o caminho ajuda a identificar riscos.",true],
+    ["Ignorar obstáculos é seguro.",false]
+  ]},
+  {titulo:"Regra 02 – Olhos no Caminho",p:[
+    ["Observar o caminho ajuda a identificar riscos.",true],
+    ["Distrações aumentam risco de quedas.",true],
+    ["Olhar o caminho elimina todos os riscos.",false],
+    ["Pisos molhados exigem atenção redobrada.",true],
+    ["Caminhar olhando o celular é seguro.",false],
+    ["Objetos no chão causam tropeços.",true]
+  ]},
+  {titulo:"Regra 03 – Ergonomia Sempre",p:[
+    ["Ajustar cadeira reduz desconfortos.",true],
+    ["Dor faz parte do trabalho.",false],
+    ["Postura inadequada gera lesões.",true],
+    ["Pausas ajudam a saúde.",true],
+    ["Ergonomia só vale para quem senta.",false],
+    ["Ergonomia melhora produtividade.",true]
+  ]},
+  {titulo:"Regra 04 – Zero Improviso",p:[
+    ["Improvisar ferramentas gera riscos.",true],
+    ["Usar equipamento errado é seguro.",false],
+    ["Improviso é aceitável se rápido.",false],
+    ["Planejar reduz erros.",true],
+    ["Falta de equipamento justifica improviso.",false],
+    ["Seguir procedimentos previne acidentes.",true]
+  ]},
+  {titulo:"Regra 05 – Organização Salva Vidas",p:[
+    ["Ambientes organizados reduzem acidentes.",true],
+    ["Objetos fora do lugar não interferem.",false],
+    ["Organização ajuda em emergências.",true],
+    ["Cabos soltos aumentam quedas.",true],
+    ["Organização é só da limpeza.",false],
+    ["Corredores livres são medida de segurança.",true]
+  ]},
+  {titulo:"Regra 06 – Comunicação é Segurança",p:[
+    ["Comunicar riscos previne acidentes.",true],
+    ["Problemas devem ser comunicados.",true],
+    ["Comunicação não influencia segurança.",false],
+    ["Silêncio pode gerar acidentes.",true],
+    ["Só líderes comunicam riscos.",false],
+    ["Comunicação fortalece a segurança.",true]
+  ]},
+  {titulo:"Regra 07 – Use EPI Sempre",p:[
+    ["EPI reduz riscos.",true],
+    ["EPI só em atividades perigosas.",false],
+    ["Não usar EPI causa acidentes.",true],
+    ["EPI deve estar em bom estado.",true],
+    ["EPI é opcional se risco for pequeno.",false],
+    ["EPI protege o trabalhador.",true]
+  ]},
+  {titulo:"Regra 08 – Saúde Mental Importa",p:[
+    ["Saúde mental influencia segurança.",true],
+    ["Estresse aumenta risco.",true],
+    ["Falar de saúde mental é fraqueza.",false],
+    ["Descanso melhora concentração.",true],
+    ["Ignorar cansaço não traz impacto.",false],
+    ["Bem-estar ajuda decisões seguras.",true]
+  ]},
+  {titulo:"Regra 09 – Segurança Contra Incêndio",p:[
+    ["Conhecer rotas é prevenção.",true],
+    ["Extintores devem estar acessíveis.",true],
+    ["Incêndios não acontecem em locais organizados.",false],
+    ["Treinamentos ajudam na emergência.",true],
+    ["Bloquear saídas é aceitável.",false],
+    ["Prevenção reduz danos.",true]
+  ]},
+  {titulo:"Regra 10 – Compromisso Coletivo",p:[
+    ["Segurança é responsabilidade de todos.",true],
+    ["Ignorar atitudes inseguras é aceitável.",false],
+    ["Trabalho em equipe fortalece segurança.",true],
+    ["Cada pessoa influencia o ambiente.",true],
+    ["Só a empresa é responsável.",false],
+    ["Compromisso coletivo reduz acidentes.",true]
+  ]},
+  {titulo:"Regra 11 – Biossegurança (NR32)",p:[
+    ["NR32 protege trabalhadores da saúde.",true],
+    ["EPI faz parte da biossegurança.",true],
+    ["Riscos biológicos não exigem cuidado.",false],
+    ["Higienização previne contaminação.",true],
+    ["Acidentes biológicos devem ser comunicados.",true],
+    ["Biossegurança protege pacientes.",true]
+  ]},
+  {titulo:"Regra 12 – Estrutura Segura",p:[
+    ["Estrutura segura reduz riscos.",true],
+    ["Manutenção influencia segurança.",true],
+    ["Estrutura danificada não oferece risco.",false],
+    ["Sinalização previne acidentes.",true],
+    ["Ignorar falhas é aceitável.",false],
+    ["Estrutura segura protege todos.",true]
+  ]}
 ];
+
+/* =========================
+   FUNÇÕES
+========================= */
+function regraLiberada(index){
+  const mesAtual = new Date().getMonth();
+  return regrasPorMes[mesAtual]?.includes(index);
+}
 
 function start(){
   const nome=document.getElementById("nome").value.trim();
   const unidade=document.getElementById("unidade").value;
   if(!nome||!unidade){alert("Preencha nome e unidade");return;}
   jogador={nome,unidade};
-  pontos=0; regraAtual=0;
+  pontos=0;
+  regraAtual=0;
   document.getElementById("login").classList.add("hidden");
   document.getElementById("jogo").classList.remove("hidden");
   carregarRegra();
@@ -229,6 +258,12 @@ function start(){
 
 function carregarRegra(){
   document.getElementById("mensagem").innerText="";
+  if(!regraLiberada(regraAtual)){
+    document.getElementById("tituloRegra").innerText="⏳ Regra ainda não liberada";
+    document.getElementById("perguntas").innerHTML=
+      "<p>Aguarde a próxima regra mensal para continuar o desafio.</p>";
+    return;
+  }
   const r=regras[regraAtual];
   document.getElementById("tituloRegra").innerText=r.titulo;
   const div=document.getElementById("perguntas");
@@ -244,23 +279,18 @@ function carregarRegra(){
 }
 
 function concluirRegra(){
-  let acertos=0;
+  if(!regraLiberada(regraAtual)) return;
   document.querySelectorAll(".question").forEach((q,i)=>{
     const m=document.querySelector(`input[name="q${i}"]:checked`);
     if(m && (m.value==="true")===regras[regraAtual].p[i][1]){
-      acertos++; pontos+=10; q.classList.add("correct");
+      pontos+=10; q.classList.add("correct");
     }else q.classList.add("wrong");
   });
   salvarRanking();
   document.getElementById("mensagem").innerText=
     `Regra concluída! Pontuação acumulada: ${pontos} pontos.`;
   regraAtual++;
-  if(regraAtual<regras.length){
-    setTimeout(carregarRegra,1500);
-  }else{
-    document.getElementById("tituloRegra").innerText="🎉 Desafio Concluído!";
-    document.getElementById("perguntas").innerHTML="<p>Parabéns! Você concluiu as 12 Regras de Ouro.</p>";
-  }
+  setTimeout(carregarRegra,1500);
 }
 
 function salvarRanking(){
@@ -280,6 +310,7 @@ function carregarRanking(){
 }
 carregarRanking();
 </script>
+
 
 </body>
 </html>
