@@ -6,12 +6,11 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const supabase = supabase.createClient(
+const supabaseClient = window.supabase.createClient(
   "https://kjsswiygclhjfminthsq.supabase.co",
   "sb_publishable_IHD7uQDeWUPaRPDIT_BfFQ_nb0U5mNI"
 );
 </script>
-
 <style>
 body{font-family:Arial;background:#f4f6f8;padding:20px}
 .container{max-width:1100px;margin:auto;background:#fff;padding:25px;border-radius:12px}
@@ -100,7 +99,7 @@ msg("Preencha todos os campos");return;}
 if(!email.endsWith("@unimedcampinas.com.br")){
 msg("Use e-mail corporativo");return;}
 
-let {error}=await supabase.auth.signInWithPassword({
+let {error}=await supabaseClient.auth.signInWithPassword({
 email,password:"12345678"
 });
 if(error){
@@ -170,7 +169,7 @@ setTimeout(carregarRegra,1000);
 async function salvarRanking(regra,pontos){
 const {data:{user}}=await supabase.auth.getUser();
 const d=new Date();
-await supabase.from("ranking").insert([{
+await supabaseClient.from("ranking").insert([{
 user_id:user.id,regra,pontos,
 mes:d.getMonth()+1,ano:d.getFullYear(),
 unidade:user.user_metadata.unidade
@@ -179,7 +178,7 @@ carregarRanking();
 }
 
 async function carregarRanking(){
-const {data}=await supabase.from("ranking")
+const {data}=await supabaseClient.from("ranking")
 .select("pontos,unidade")
 .order("pontos",{ascending:false});
 ranking().innerHTML="<ol>"+data.map(r=>`<li>${r.unidade} – ${r.pontos} pts</li>`).join("")+"</ol>";
@@ -223,7 +222,7 @@ carregarPainelGestor();
 }
 
 async function carregarPainelGestor(){
-const {data}=await supabase.from("ranking")
+const {data}=await supabaseClient.from("ranking")
 .select("regra,pontos,created_at,users_profile(nome,unidade)");
 tabelaGestor().innerHTML=data.map(r=>
 `<tr><td>${r.users_profile.nome}</td>
