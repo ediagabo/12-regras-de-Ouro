@@ -1,7 +1,7 @@
-<!DOCTYPE html>
+
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>12 Regras de Ouro – Unimed Campinas</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11,13 +11,11 @@ body { font-family: Arial; background:#f4f6f8; padding:20px }
 .container { max-width:900px; margin:auto; background:#fff; padding:25px; border-radius:12px }
 button { background:#2e7d32; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer }
 .hidden { display:none }
-.rule { margin-top:20px }
-.correct { background:#e8f5e9; padding:10px; border-left:5px solid green }
-.wrong { background:#fdecea; padding:10px; border-left:5px solid red }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
 <h2>12 Regras de Ouro – Para um Ano Mais Seguro</h2>
@@ -42,11 +40,11 @@ button { background:#2e7d32; color:#fff; border:none; padding:10px 20px; border-
 </div>
 
 <div id="game" class="hidden">
-  <h3 id="ruleTitle"></h3>
-  <p id="question"></p>
+  <h3 id="regraTitulo"></h3>
+  <p id="pergunta"></p>
 
-  <label><input type="radio" name="answer" value="true"> Verdadeiro</label><br>
-  <label><input type="radio" name="answer" value="false"> Falso</label><br><br>
+  <label><input type="radio" name="resp" value="true"> Verdadeiro</label><br>
+  <label><input type="radio" name="resp" value="false"> Falso</label><br><br>
 
   <button onclick="next()">Confirmar</button>
 </div>
@@ -58,90 +56,107 @@ button { background:#2e7d32; color:#fff; border:none; padding:10px 20px; border-
 </div>
 
 <script>
-const supabase = supabase.createClient(
+/* ===== SUPABASE ===== */
+const supabaseClient = supabase.createClient(
   "https://kjsswiygclhjfminthsq.supabase.co",
   "sb_publishable_IHD7uQDeWUPaRPDIT_BfFQ_nb0U5mNI"
 );
 
-const rules = [
- { t:"Regra 1 – Atenção no Caminho", q:"Olhar o caminho reduz risco de queda.", a:true },
- { t:"Regra 2 – Olhos no Caminho", q:"Distração pode causar acidentes.", a:true }
+/* ===== DADOS ===== */
+const regras = [
+  { titulo:"Regra 1 – Atenção no Caminho", pergunta:"Olhar o caminho reduz riscos.", correta:true },
+  { titulo:"Regra 2 – Olhos no Caminho", pergunta:"Distração pode causar quedas.", correta:true }
 ];
 
-let user = null;
-let current = 0;
-let score = 0;
+let usuario = null;
+let indice = 0;
+let pontos = 0;
 
+/* ===== LOGIN ===== */
 async function start() {
-  const nome = nomeInput.value = document.getElementById("nome").value;
-  const email = document.getElementById("email").value;
+  const nome = document.getElementById("nome").value.trim();
+  const email = document.getElementById("email").value.trim();
   const unidade = document.getElementById("unidade").value;
 
   if (!email.endsWith("@unimedcampinas.com.br")) {
-    alert("Use e-mail corporativo.");
+    alert("Use o e-mail corporativo.");
     return;
   }
 
-  let { data } = await supabase
+  let { data } = await supabaseClient
     .from("users_profile")
     .select("*")
     .eq("email", email)
     .single();
 
   if (!data) {
-    const res = await supabase.from("users_profile").insert({ nome, email, unidade }).select().single();
-    user = res.data;
+    const res = await supabaseClient
+      .from("users_profile")
+      .insert({ nome, email, unidade })
+      .select()
+      .single();
+    usuario = res.data;
   } else {
-    user = data;
+    usuario = data;
   }
 
   document.getElementById("login").classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
-  show();
+  mostrarPergunta();
 }
 
-function show() {
-  document.getElementById("ruleTitle").innerText = rules[current].t;
-  document.getElementById("question").innerText = rules[current].q;
+/* ===== QUIZ ===== */
+function mostrarPergunta() {
+  document.getElementById("regraTitulo").innerText = regras[indice].titulo;
+  document.getElementById("pergunta").innerText = regras[indice].pergunta;
 }
 
 async function next() {
-  const answer = document.querySelector('input[name="answer"]:checked');
-  if (!answer) return alert("Selecione uma opção");
+  const selecionada = document.querySelector('input[name="resp"]:checked');
+  if (!selecionada) {
+    alert("Selecione uma resposta");
+    return;
+  }
 
-  const correct = answer.value === String(rules[current].a);
-  const points = correct ? 10 : 0;
-  score += points;
+  const correta = selecionada.value === String(regras[indice].correta);
+  const score = correta ? 10 : 0;
+  pontos += score;
 
-  await supabase.from("ranking").insert({
-    user_id: user.id,
-    nome: user.nome,
-    email: user.email,
-    unidade: user.unidade,
-    regra: current + 1,
-    pontos: points
+  await supabaseClient.from("ranking").insert({
+    user_id: usuario.id,
+    nome: usuario.nome,
+    email: usuario.email,
+    unidade: usuario.unidade,
+    regra: indice + 1,
+    pontos: score
   });
 
-  current++;
-  if (current < rules.length) show();
-  else alert("Desafio concluído! Pontos: " + score);
+  indice++;
 
-  loadRanking();
+  if (indice < regras.length) {
+    mostrarPergunta();
+  } else {
+    alert("Desafio concluído! Pontos: " + pontos);
+  }
+
+  carregarRanking();
 }
 
-async function loadRanking() {
-  const { data } = await supabase
+/* ===== RANKING ===== */
+async function carregarRanking() {
+  const { data } = await supabaseClient
     .from("ranking")
-    .select("nome, unidade, pontos");
+    .select("nome, unidade, pontos")
+    .order("pontos", { ascending:false });
 
-  const list = document.getElementById("ranking");
-  list.innerHTML = "";
-  data.forEach(r => {
-    list.innerHTML += `<li>${r.nome} (${r.unidade}) – ${r.pontos} pts</li>`;
-  });
+  const lista = document.getElementById("ranking");
+  lista.innerHTML = "";
+  data.forEach(r =>
+    lista.innerHTML += `<li>${r.nome} (${r.unidade}) – ${r.pontos} pts</li>`
+  );
 }
 
-loadRanking();
+carregarRanking();
 </script>
 
 </body>
