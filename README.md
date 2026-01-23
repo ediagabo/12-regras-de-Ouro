@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8" />
@@ -78,4 +78,107 @@ let pontos = 0;
 const regras = [
 { titulo:"Regra 01 – Atenção no Trajeto", correta:true,
   perguntas:[
-    ["Manter atenção no trajeto reduz acidentes.",true]
+    ["Manter atenção no trajeto reduz acidentes.",true],
+    ["Uso do celular não interfere na segurança.",false],
+    ["Dirigir cansado aumenta o risco.",true],
+    ["Atravessar fora da faixa é seguro.",false],
+    ["Olhar o caminho ajuda a prevenir quedas.",true],
+    ["Pressa não influencia acidentes.",false]
+]},
+{ titulo:"Regra 02 – Olhos no Caminho", correta:true,
+  perguntas:[
+    ["Observar o caminho ajuda a identificar riscos.",true],
+    ["Distração pode causar quedas.",true],
+    ["Olhar elimina todos os riscos.",false],
+    ["Tapetes soltos são seguros.",false],
+    ["Objetos bloqueando visão aumentam risco.",true],
+    ["Ignorar piso molhado é seguro.",false]
+]},
+/* Regras 03 a 12 seguem o mesmo padrão */
+];
+
+function start(){
+  const nome = nomeInput.value.trim();
+  const email = emailInput.value.trim();
+  const unidade = unidadeInput.value;
+
+  if(!nome || !email.endsWith("@unimedcampinas.com.br")){
+    alert("Use seu e-mail corporativo");
+    return;
+  }
+
+  usuario = { nome, email, unidade };
+  login.classList.add("hidden");
+  game.classList.remove("hidden");
+  indice = 0;
+  pontos = 0;
+  render();
+}
+
+function render(){
+  if(!regras[indice]){
+    titulo.innerText = "🎉 Desafio concluído!";
+    perguntas.innerHTML = "<p>Aguarde a próxima regra.</p>";
+    return;
+  }
+
+  titulo.innerText = regras[indice].titulo;
+  perguntas.innerHTML = "";
+
+  regras[indice].perguntas.forEach((p,i)=>{
+    perguntas.innerHTML += `
+      <div class="question">
+        <p>${i+1}. ${p[0]}</p>
+        <label><input type="radio" name="resp${i}" value="true"> Verdadeiro</label>
+        <label><input type="radio" name="resp${i}" value="false"> Falso</label>
+      </div>`;
+  });
+}
+
+async function next(){
+  if(!regras[indice]) return;
+
+  let acertos = 0;
+  regras[indice].perguntas.forEach((p,i)=>{
+    const marcada = document.querySelector(`input[name="resp${i}"]:checked`);
+    if(marcada && String(p[1]) === marcada.value) acertos++;
+  });
+
+  const score = acertos * 10;
+  pontos += score;
+
+  await supabaseClient.from("ranking").insert({
+    nome: usuario.nome,
+    email: usuario.email,
+    unidade: usuario.unidade,
+    regra: indice + 1,
+    pontos: score
+  });
+
+  indice++;
+  carregarRanking();
+  render();
+}
+
+async function carregarRanking(){
+  const { data } = await supabaseClient
+    .from("ranking")
+    .select("nome, unidade, pontos")
+    .order("pontos",{ascending:false});
+
+  ranking.innerHTML = "";
+
+  if(!data || data.length===0){
+    ranking.innerHTML="<li>Nenhum registro ainda</li>";
+    return;
+  }
+
+  data.forEach(r=>{
+    ranking.innerHTML += `<li>${r.nome} (${r.unidade}) – ${r.pontos} pts</li>`;
+  });
+}
+
+carregarRanking();
+</script>
+</body>
+</html>
