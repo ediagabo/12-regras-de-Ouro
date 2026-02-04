@@ -147,19 +147,27 @@ const PONTUACAO_MINIMA = 42; // 70%
 /* =========================
    MAPA MENSAL
 ========================= */
-const regrasPorMes = {
-  0:[0,1],1:[2],2:[3],3:[4],4:[5],5:[6],
-  6:[7],7:[8],8:[9],9:[10],10:[11]
+  const regrasPorMes = {
+  0: [0, 1, 2],   // Janeiro → Regras 1, 2 e 3
+  1: [3],         // Fevereiro → Regra 4
+  2: [4],         // Março → Regra 5
+  3: [5],         // Abril → Regra 6
+  4: [6],         // Maio → Regra 7
+  5: [7],         // Junho → Regra 8
+  6: [8],         // Julho → Regra 9
+  7: [9],         // Agosto → Regra 10
+  8: [10],        // Setembro → Regra 11
+  9: [11]         // Outubro → Regra 12
 };
 
 /* =========================
    NÍVEIS DE PREVENÇÃO
 ========================= */
 const niveis = [
-  { nivel:1, nome:"Atenção Básica", regras:[0,1] },
-  { nivel:2, nome:"Prevenção Essencial", regras:[2,3,4,5] },
-  { nivel:3, nome:"Segurança Estruturada", regras:[6,7,8,9] },
-  { nivel:4, nome:"Saúde Segura", regras:[10,11], final:true }
+  { nivel:1, nome:"Atenção Básica", regras:[0,1,2] },
+  { nivel:2, nome:"Prevenção Essencial", regras:[3,4,5,6] },
+  { nivel:3, nome:"Segurança Estruturada", regras:[7,8,9,10] },
+  { nivel:4, nome:"Saúde Segura", regras:[10,11,12], final:true }
 ];
 
 /* =========================
