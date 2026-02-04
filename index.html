@@ -317,19 +317,56 @@ function carregarRegra(){
    CONCLUSÃO COM 70%
 ========================= */
 function concluirRegra(){
-  let pontosRegra=0;
+  if(!regraLiberada(regraAtual)) return;
+
+  let pontosRegra = 0;
+  const totalQuestoes = regras[regraAtual].p.length;
+
   document.querySelectorAll(".question").forEach((q,i)=>{
-    const m=document.querySelector(`input[name="q${i}"]:checked`);
-    if(m && (m.value==="true")===regras[regraAtual].p[i][1]){
-      pontosRegra+=10; q.classList.add("correct");
-    }else q.classList.add("wrong");
+    const marcada = document.querySelector(`input[name="q${i}"]:checked`);
+    const correta = regras[regraAtual].p[i][1];
+
+    if(marcada && (marcada.value === "true") === correta){
+      pontosRegra += 10;
+      q.classList.add("correct");
+    } else {
+      q.classList.add("wrong");
+    }
   });
 
-  if(pontosRegra<PONTUACAO_MINIMA){
-    document.getElementById("mensagem").innerText=
-      `❌ Pontuação insuficiente (${pontosRegra}/60).\nÉ necessário no mínimo 70%.`;
-    return;
+  // 🔐 CONTROLE DE PRIMEIRA TENTATIVA
+  let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
+
+  if(!tentativas[`regra_${regraAtual}`]){
+    const aprovado = pontosRegra >= PONTUACAO_MINIMA;
+
+    tentativas[`regra_${regraAtual}`] = {
+      primeiraPontuacao: pontosRegra,
+      aprovado: aprovado,
+      selo: aprovado
+    };
+
+    localStorage.setItem("tentativas", JSON.stringify(tentativas));
+
+    // Ranking usa SEMPRE a primeira tentativa
+    salvarRankingPrimeiraTentativa(pontosRegra);
+
+    if(aprovado){
+      salvarSelo(regraAtual);
+    }
   }
+
+  // Mensagem para o jogador
+  if(pontosRegra >= PONTUACAO_MINIMA){
+    document.getElementById("mensagem").innerText =
+      `✅ Regra concluída!\nPontuação obtida: ${pontosRegra} pts`;
+    regraAtual++;
+    setTimeout(carregarRegra, 1500);
+  } else {
+    document.getElementById("mensagem").innerText =
+      `❌ Pontuação insuficiente (${pontosRegra} pts).\nVocê pode tentar novamente para avançar.`;
+  }
+}
 
   pontos+=pontosRegra;
   salvarRanking();
@@ -344,21 +381,42 @@ function concluirRegra(){
 }
 
 /* =========================
-   RANKING
+   RANKING – PRIMEIRA TENTATIVA
 ========================= */
-function salvarRanking(){
-  let r=JSON.parse(localStorage.getItem("ranking"))||[];
-  r.push({nome:jogador.nome,unidade:jogador.unidade,pontos});
-  localStorage.setItem("ranking",JSON.stringify(r));
+
+function salvarRankingPrimeiraTentativa(pontosRegra){
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+
+  ranking.push({
+    nome: jogador.nome,
+    unidade: jogador.unidade,
+    regra: regras[regraAtual].titulo,
+    regraIndex: regraAtual,
+    pontos: pontosRegra,
+    data: new Date().toLocaleDateString("pt-BR"),
+    hora: new Date().toLocaleTimeString("pt-BR")
+  });
+
+  localStorage.setItem("ranking", JSON.stringify(ranking));
   carregarRanking();
 }
 
 function carregarRanking(){
-  let r=JSON.parse(localStorage.getItem("ranking"))||[];
-  r.sort((a,b)=>b.pontos-a.pontos);
-  document.getElementById("ranking").innerHTML=
-    "<ol>"+r.map(x=>`<li>${x.nome} (${x.unidade}) – ${x.pontos} pts</li>`).join("")+"</ol>";
+  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+
+  ranking.sort((a,b)=>b.pontos - a.pontos);
+
+  document.getElementById("ranking").innerHTML =
+    "<ol>" +
+    ranking.map(r =>
+      `<li>
+        ${r.nome} (${r.unidade})<br>
+        <small>${r.regra} – ${r.pontos} pts – ${r.data} ${r.hora}</small>
+      </li>`
+    ).join("") +
+    "</ol>";
 }
+
 
 /* =========================
    SELOS
