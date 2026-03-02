@@ -5,88 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f6f8;
-  margin:0;
-  padding:20px;
-}
-.container{
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  padding:25px;
-  border-radius:10px;
-}
+body{font-family:Arial,sans-serif;background:#f4f6f8;margin:0;padding:20px}
+.container{max-width:1000px;margin:auto;background:#fff;padding:25px;border-radius:10px}
 h1,h2,h3{text-align:center}
 .hidden{display:none}
-input,select{
-  width:100%;
-  padding:10px;
-  margin-bottom:12px;
-  border-radius:6px;
-  border:1px solid #ccc;
-}
-button{
-  background:#2e7d32;
-  color:#fff;
-  border:none;
-  padding:12px 18px;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:16px;
-}
+input,select{width:100%;padding:10px;margin-bottom:12px;border-radius:6px;border:1px solid #ccc}
+button{background:#2e7d32;color:#fff;border:none;padding:12px 18px;border-radius:6px;cursor:pointer;font-size:16px}
 button:hover{background:#256428}
-.question{
-  background:#fafafa;
-  padding:12px;
-  border-radius:6px;
-  margin-bottom:12px;
-  border-left:6px solid #ccc;
-}
-.question.correct{
-  border-left-color:#2e7d32;
-  background:#e8f5e9;
-}
-.question.wrong{
-  border-left-color:#c62828;
-  background:#fdecea;
-}
-.ranking{
-  background:#f1f8e9;
-  padding:15px;
-  border-radius:8px;
-  margin-top:30px;
-}
-.msg{
-  margin-top:15px;
-  font-weight:bold;
-  color:#2e7d32;
-  white-space:pre-line;
-}
-.escudo{
-  display:block;
-  margin:0 auto 15px;
-  max-width:140px;
-}
-.selo{
-  width:140px;
-  padding:10px;
-  border-radius:8px;
-  background:#e8f5e9;
-  border:2px solid #2e7d32;
-  text-align:center;
-  font-weight:bold;
-  font-size:13px;
-}
+.question{background:#fafafa;padding:12px;border-radius:6px;margin-bottom:12px;border-left:6px solid #ccc}
+.question.correct{border-left-color:#2e7d32;background:#e8f5e9}
+.question.wrong{border-left-color:#c62828;background:#fdecea}
+.ranking{background:#f1f8e9;padding:15px;border-radius:8px;margin-top:30px}
+.msg{margin-top:15px;font-weight:bold;color:#2e7d32;white-space:pre-line}
+.escudo{display:block;margin:0 auto 15px;max-width:140px}
+.selo{width:140px;padding:10px;border-radius:8px;background:#e8f5e9;border:2px solid #2e7d32;text-align:center;font-weight:bold;font-size:13px}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
+thead{background:#2e7d32;color:#fff}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
-<img src="escudo.png" class="escudo" alt="Escudo 12 Regras de Ouro">
+<img src="escudo.png" class="escudo" alt="Escudo">
 
 <h1>12 Regras de Ouro</h1>
 <h2>Para um Ano Mais Seguro</h2>
@@ -116,8 +58,13 @@ button:hover{background:#256428}
 </div>
 
 <div class="ranking">
-  <h3>🏆 Ranking Geral</h3>
+  <h3>🏆 Ranking Oficial (720 Pontos)</h3>
   <div id="ranking"></div>
+</div>
+
+<div class="ranking">
+  <h3>📊 Minha Pontuação</h3>
+  <div id="painelIndividual"></div>
 </div>
 
 <div class="ranking">
@@ -129,195 +76,152 @@ button:hover{background:#256428}
 
 <script>
 
-/* =========================
-   VARIÁVEIS GLOBAIS
-========================= */
-let jogador = {};
-let pontos = 0;
-let regraAtual = 0;
-
-const PONTUACAO_MINIMA = 42;
+let jogador={}, regraAtual=0;
 
 /* =========================
-   MAPA MENSAL
-========================= */
-const regrasPorMes = {
-  0: [0, 1],
-  1: [0, 1, 2],
-  2: [3],
-  3: [4],
-  4: [5],
-  5: [6],
-  6: [7],
-  7: [8],
-  8: [9],
-  9: [10],
-  10:[11]
-};
-
-/* =========================
-   NÍVEIS
-========================= */
-const niveis = [
-  { nivel:1, nome:"Atenção Básica", regras:[0,1] },
-  { nivel:2, nome:"Prevenção Essencial", regras:[2,3,4,5] },
-  { nivel:3, nome:"Segurança Estruturada", regras:[7,8,9,10] },
-  { nivel:4, nome:"Saúde Segura", regras:[10,11], final:true }
-];
-
-/* =========================
-   REGRAS
+   12 REGRAS
 ========================= */
 const regras = [
-  {titulo:"Regra 01 – Atenção no Trajeto",p:[
-    ["Manter atenção no trajeto reduz acidentes.",true],
-    ["Usar celular ao caminhar não traz riscos.",false],
-    ["Distração aumenta o risco de quedas.",true],
-    ["Cansaço não interfere na segurança.",false],
-    ["Olhar o caminho ajuda a identificar riscos.",true],
-    ["Ignorar obstáculos é seguro.",false]
-  ]},
-  {titulo:"Regra 02 – Olhos no Caminho",p:[
-    ["Observar o caminho ajuda a identificar riscos.",true],
-    ["Distrações aumentam risco de quedas.",true],
-    ["Olhar o caminho elimina todos os riscos.",false],
-    ["Pisos molhados exigem atenção redobrada.",true],
-    ["Caminhar olhando o celular é seguro.",false],
-    ["Objetos no chão causam tropeços.",true]
-  ]},
-  {titulo:"Regra 03 – Ergonomia Sempre",p:[
-    ["Ajustar cadeira reduz desconfortos.",true],
-    ["Dor faz parte do trabalho.",false],
-    ["Postura inadequada gera lesões.",true],
-    ["Pausas ajudam a saúde.",true],
-    ["Ergonomia só vale para quem senta.",false],
-    ["Ergonomia melhora produtividade.",true]
-  ]},
-  {titulo:"Regra 04 – Zero Improviso",p:[
-    ["Improvisar ferramentas gera riscos.",true],
-    ["Usar equipamento errado é seguro.",false],
-    ["Improviso é aceitável se rápido.",false],
-    ["Planejar reduz erros.",true],
-    ["Falta de equipamento justifica improviso.",false],
-    ["Seguir procedimentos previne acidentes.",true]
-  ]},
-  {titulo:"Regra 05 – Organização Salva Vidas",p:[
-    ["Ambientes organizados reduzem acidentes.",true],
-    ["Objetos fora do lugar não interferem.",false],
-    ["Organização ajuda em emergências.",true],
-    ["Cabos soltos aumentam quedas.",true],
-    ["Organização é só da limpeza.",false],
-    ["Corredores livres são medida de segurança.",true]
-  ]},
-  {titulo:"Regra 06 – Comunicação é Segurança",p:[
-    ["Comunicar riscos previne acidentes.",true],
-    ["Problemas devem ser comunicados.",true],
-    ["Comunicação não influencia segurança.",false],
-    ["Silêncio pode gerar acidentes.",true],
-    ["Só líderes comunicam riscos.",false],
-    ["Comunicação fortalece a segurança.",true]
-  ]},
-  {titulo:"Regra 07 – Use EPI Sempre",p:[
-    ["EPI reduz riscos.",true],
-    ["EPI só em atividades perigosas.",false],
-    ["Não usar EPI causa acidentes.",true],
-    ["EPI deve estar em bom estado.",true],
-    ["EPI é opcional se risco for pequeno.",false],
-    ["EPI protege o trabalhador.",true]
-  ]},
-  {titulo:"Regra 08 – Saúde Mental Importa",p:[
-    ["Saúde mental influencia segurança.",true],
-    ["Estresse aumenta risco.",true],
-    ["Falar de saúde mental é fraqueza.",false],
-    ["Descanso melhora concentração.",true],
-    ["Ignorar cansaço não traz impacto.",false],
-    ["Bem-estar ajuda decisões seguras.",true]
-  ]},
-  {titulo:"Regra 09 – Segurança Contra Incêndio",p:[
-    ["Conhecer rotas é prevenção.",true],
-    ["Extintores devem estar acessíveis.",true],
-    ["Incêndios não acontecem em locais organizados.",false],
-    ["Treinamentos ajudam na emergência.",true],
-    ["Bloquear saídas é aceitável.",false],
-    ["Prevenção reduz danos.",true]
-  ]},
-  {titulo:"Regra 10 – Compromisso Coletivo",p:[
-    ["Segurança é responsabilidade de todos.",true],
-    ["Ignorar atitudes inseguras é aceitável.",false],
-    ["Trabalho em equipe fortalece segurança.",true],
-    ["Cada pessoa influencia o ambiente.",true],
-    ["Só a empresa é responsável.",false],
-    ["Compromisso coletivo reduz acidentes.",true]
-  ]},
-  {titulo:"Regra 11 – Biossegurança (NR32)",p:[
-    ["NR32 protege trabalhadores da saúde.",true],
-    ["EPI faz parte da biossegurança.",true],
-    ["Riscos biológicos não exigem cuidado.",false],
-    ["Higienização previne contaminação.",true],
-    ["Acidentes biológicos devem ser comunicados.",true],
-    ["Biossegurança protege pacientes.",true]
-  ]},
-  {titulo:"Regra 12 – Estrutura Segura",p:[
-    ["Estrutura segura reduz riscos.",true],
-    ["Manutenção influencia segurança.",true],
-    ["Estrutura danificada não oferece risco.",false],
-    ["Sinalização previne acidentes.",true],
-    ["Ignorar falhas é aceitável.",false],
-    ["Estrutura segura protege todos.",true]
-  ]}
+{titulo:"Regra 01 – Atenção no Trajeto",p:[
+["Manter atenção no trajeto reduz acidentes.",true],
+["Usar celular ao caminhar não traz riscos.",false],
+["Distração aumenta o risco de quedas.",true],
+["Cansaço não interfere na segurança.",false],
+["Olhar o caminho ajuda a identificar riscos.",true],
+["Ignorar obstáculos é seguro.",false]
+]},
+{titulo:"Regra 02 – Olhos no Caminho",p:[
+["Observar o caminho ajuda a identificar riscos.",true],
+["Distrações aumentam risco de quedas.",true],
+["Olhar o caminho elimina todos os riscos.",false],
+["Pisos molhados exigem atenção redobrada.",true],
+["Caminhar olhando o celular é seguro.",false],
+["Objetos no chão causam tropeços.",true]
+]},
+{titulo:"Regra 03 – Ergonomia Sempre",p:[
+["Ajustar cadeira reduz desconfortos.",true],
+["Dor faz parte do trabalho.",false],
+["Postura inadequada gera lesões.",true],
+["Pausas ajudam a saúde.",true],
+["Ergonomia só vale para quem senta.",false],
+["Ergonomia melhora produtividade.",true]
+]},
+{titulo:"Regra 04 – Zero Improviso",p:[
+["Improvisar ferramentas gera riscos.",true],
+["Usar equipamento errado é seguro.",false],
+["Improviso é aceitável se rápido.",false],
+["Planejar reduz erros.",true],
+["Falta de equipamento justifica improviso.",false],
+["Seguir procedimentos previne acidentes.",true]
+]},
+{titulo:"Regra 05 – Organização Salva Vidas",p:[
+["Ambientes organizados reduzem acidentes.",true],
+["Objetos fora do lugar não interferem.",false],
+["Organização ajuda em emergências.",true],
+["Cabos soltos aumentam quedas.",true],
+["Organização é só da limpeza.",false],
+["Corredores livres são medida de segurança.",true]
+]},
+{titulo:"Regra 06 – Comunicação é Segurança",p:[
+["Comunicar riscos previne acidentes.",true],
+["Problemas devem ser comunicados.",true],
+["Comunicação não influencia segurança.",false],
+["Silêncio pode gerar acidentes.",true],
+["Só líderes comunicam riscos.",false],
+["Comunicação fortalece a segurança.",true]
+]},
+{titulo:"Regra 07 – Use EPI Sempre",p:[
+["EPI reduz riscos.",true],
+["EPI só em atividades perigosas.",false],
+["Não usar EPI causa acidentes.",true],
+["EPI deve estar em bom estado.",true],
+["EPI é opcional se risco for pequeno.",false],
+["EPI protege o trabalhador.",true]
+]},
+{titulo:"Regra 08 – Saúde Mental Importa",p:[
+["Saúde mental influencia segurança.",true],
+["Estresse aumenta risco.",true],
+["Falar de saúde mental é fraqueza.",false],
+["Descanso melhora concentração.",true],
+["Ignorar cansaço não traz impacto.",false],
+["Bem-estar ajuda decisões seguras.",true]
+]},
+{titulo:"Regra 09 – Segurança Contra Incêndio",p:[
+["Conhecer rotas é prevenção.",true],
+["Extintores devem estar acessíveis.",true],
+["Incêndios não acontecem em locais organizados.",false],
+["Treinamentos ajudam na emergência.",true],
+["Bloquear saídas é aceitável.",false],
+["Prevenção reduz danos.",true]
+]},
+{titulo:"Regra 10 – Compromisso Coletivo",p:[
+["Segurança é responsabilidade de todos.",true],
+["Ignorar atitudes inseguras é aceitável.",false],
+["Trabalho em equipe fortalece segurança.",true],
+["Cada pessoa influencia o ambiente.",true],
+["Só a empresa é responsável.",false],
+["Compromisso coletivo reduz acidentes.",true]
+]},
+{titulo:"Regra 11 – Biossegurança (NR32)",p:[
+["NR32 protege trabalhadores da saúde.",true],
+["EPI faz parte da biossegurança.",true],
+["Riscos biológicos não exigem cuidado.",false],
+["Higienização previne contaminação.",true],
+["Acidentes biológicos devem ser comunicados.",true],
+["Biossegurança protege pacientes.",true]
+]},
+{titulo:"Regra 12 – Estrutura Segura",p:[
+["Estrutura segura reduz riscos.",true],
+["Manutenção influencia segurança.",true],
+["Estrutura danificada não oferece risco.",false],
+["Sinalização previne acidentes.",true],
+["Ignorar falhas é aceitável.",false],
+["Estrutura segura protege todos.",true]
+]}
 ];
 
 /* =========================
-   FUNÇÕES
+   INICIAR
 ========================= */
-
-function regraLiberada(i){
-  return true; // 🔓 Todas as regras liberadas
-}
-
 function start(){
-  const nome=document.getElementById("nome").value.trim();
-  const unidade=document.getElementById("unidade").value;
-  if(!nome||!unidade){alert("Preencha nome e unidade");return;}
-  jogador={nome,unidade};
-  pontos=0;
-  regraAtual=0;
-  document.getElementById("login").classList.add("hidden");
-  document.getElementById("jogo").classList.remove("hidden");
+  jogador.nome=nome.value.trim();
+  jogador.unidade=unidade.value;
+  if(!jogador.nome||!jogador.unidade){alert("Preencha os dados");return;}
+  login.classList.add("hidden");
+  jogo.classList.remove("hidden");
   carregarRegra();
+  atualizarPainelIndividual();
 }
 
+/* =========================
+   CARREGAR REGRA
+========================= */
 function carregarRegra(){
-  document.getElementById("mensagem").innerText="";
-  if(!regraLiberada(regraAtual)){
-    document.getElementById("tituloRegra").innerText="⏳ Regra ainda não liberada";
-    document.getElementById("perguntas").innerHTML=
-      "<p>Aguarde a próxima regra mensal para continuar.</p>";
+  if(regraAtual>=regras.length){
+    mensagem.innerText="🎉 Você concluiu todas as regras!";
     return;
   }
+
   const r=regras[regraAtual];
-  document.getElementById("tituloRegra").innerText=r.titulo;
-  const div=document.getElementById("perguntas");
-  div.innerHTML="";
-  r.p.forEach((q,i)=>{
-    div.innerHTML+=`
-      <div class="question">
-        <p>${i+1}. ${q[0]}</p>
-        <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
-        <label><input type="radio" name="q${i}" value="false"> Falso</label>
-      </div>`;
-  });
+  tituloRegra.innerText=r.titulo;
+  perguntas.innerHTML=r.p.map((q,i)=>`
+    <div class="question">
+      <p>${i+1}. ${q[0]}</p>
+      <label><input type="radio" name="q${i}" value="true"> Verdadeiro</label><br>
+      <label><input type="radio" name="q${i}" value="false"> Falso</label>
+    </div>`).join("");
 }
 
+/* =========================
+   CONCLUIR REGRA
+========================= */
 function concluirRegra(){
 
-  let pontosRegra = 0;
+  let pontosRegra=0;
 
   document.querySelectorAll(".question").forEach((q,i)=>{
-    const marcada = document.querySelector(`input[name="q${i}"]:checked`);
-    const correta = regras[regraAtual].p[i][1];
-
-    if(marcada && (marcada.value==="true")===correta){
+    const marcada=document.querySelector(`input[name="q${i}"]:checked`);
+    if(marcada && (marcada.value==="true")===regras[regraAtual].p[i][1]){
       pontosRegra+=10;
       q.classList.add("correct");
     }else{
@@ -325,114 +229,78 @@ function concluirRegra(){
     }
   });
 
-  let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  ranking.push({nome:jogador.nome,unidade:jogador.unidade,regra:regraAtual+1,pontos:pontosRegra});
+  localStorage.setItem("ranking",JSON.stringify(ranking));
 
-  if(!tentativas[regraAtual]){
-    tentativas[regraAtual]=pontosRegra;
-    localStorage.setItem("tentativas",JSON.stringify(tentativas));
-    salvarRanking(pontosRegra);
-
-    if(pontosRegra>=PONTUACAO_MINIMA){
-      salvarSelo(regraAtual);
-      verificarCertificadoNivel();
-    }
+  if(pontosRegra===60){
+    salvarSelo(regraAtual);
   }
 
-  document.getElementById("mensagem").innerText=`Pontuação obtida nesta regra: ${pontosRegra} pts`;
-
   regraAtual++;
-  setTimeout(carregarRegra,1200);
+  atualizarRankingFinal();
+  atualizarPainelIndividual();
+  setTimeout(carregarRegra,1000);
 }
 
-/* RANKING */
-function salvarRanking(p){
-  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
+/* =========================
+   RANKING FINAL (720 pts)
+========================= */
+function atualizarRankingFinal(){
 
-  ranking.push({
-    nome:jogador.nome,
-    unidade:jogador.unidade,
-    regra: regraAtual+1,
-    pontos:p
-  });
-
-  localStorage.setItem("ranking",JSON.stringify(ranking));
-  carregarRanking();
-}
-
-function carregarRanking(){
-  let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
-
-  ranking.sort((a,b)=>b.pontos-a.pontos);
-
-  let html = `
-    <table style="width:100%;border-collapse:collapse;">
-      <thead>
-        <tr style="background:#2e7d32;color:white;">
-          <th style="padding:8px;">Nome</th>
-          <th>Unidade</th>
-          <th>Regra</th>
-          <th>Pontos</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  let jogadores={};
 
   ranking.forEach(r=>{
-    html += `
-      <tr style="border-bottom:1px solid #ddd;text-align:center;">
-        <td style="padding:6px;">${r.nome}</td>
-        <td>${r.unidade}</td>
-        <td>Regra ${r.regra}</td>
-        <td><strong>${r.pontos}</strong></td>
-      </tr>
-    `;
+    let chave=r.nome+"|"+r.unidade;
+    if(!jogadores[chave]){
+      jogadores[chave]={nome:r.nome,unidade:r.unidade,total:0};
+    }
+    jogadores[chave].total+=r.pontos;
   });
 
-  html += `</tbody></table>`;
+  let finalistas=Object.values(jogadores)
+    .filter(j=>j.total===720)
+    .sort((a,b)=>b.total-a.total);
 
-  document.getElementById("ranking").innerHTML = html;
+  ranking.innerHTML=finalistas.length?
+    `<table><thead><tr><th>Pos</th><th>Nome</th><th>Unidade</th><th>Total</th></tr></thead>
+     <tbody>${finalistas.map((j,i)=>`
+     <tr><td>${i+1}</td><td>${j.nome}</td><td>${j.unidade}</td><td>${j.total}</td></tr>`).join("")}
+     </tbody></table>`:
+     "Nenhum jogador atingiu 720 pontos ainda.";
 }
 
-/* SELOS */
+/* =========================
+   PAINEL INDIVIDUAL
+========================= */
+function atualizarPainelIndividual(){
+
+  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
+  let minhas=ranking.filter(r=>r.nome===jogador.nome && r.unidade===jogador.unidade);
+  let total=0;
+
+  let html=`<table><thead><tr><th>Regra</th><th>Pontos</th></tr></thead><tbody>`;
+
+  minhas.forEach(r=>{
+    total+=r.pontos;
+    html+=`<tr><td>Regra ${r.regra}</td><td>${r.pontos}</td></tr>`;
+  });
+
+  html+=`<tr style="font-weight:bold;"><td>Total</td><td>${total}/720</td></tr></tbody></table>`;
+
+  painelIndividual.innerHTML=html;
+}
+
+/* =========================
+   SELOS
+========================= */
 function salvarSelo(i){
   let s=JSON.parse(localStorage.getItem("selos"))||[];
-  if(!s.includes(i)){s.push(i);}
+  if(!s.includes(i)) s.push(i);
   localStorage.setItem("selos",JSON.stringify(s));
-  carregarSelos();
+  selos.innerHTML=s.map(i=>`<div class="selo">🏅<br>${regras[i].titulo}</div>`).join("");
 }
-
-function carregarSelos(){
-  const d=document.getElementById("selos");
-  let s=JSON.parse(localStorage.getItem("selos"))||[];
-  d.innerHTML=s.length
-    ? s.map(i=>`<div class="selo">🏅<br>${regras[i].titulo}</div>`).join("")
-    : "<p>Nenhum selo conquistado ainda.</p>";
-}
-
-/* CERTIFICADO */
-function verificarCertificadoNivel(){
-  const selos=JSON.parse(localStorage.getItem("selos"))||[];
-  let certificados=JSON.parse(localStorage.getItem("certificados"))||[];
-
-  niveis.forEach(n=>{
-    if(n.regras.every(r=>selos.includes(r)) && !certificados.includes(n.nivel)){
-      certificados.push(n.nivel);
-      localStorage.setItem("certificados",JSON.stringify(certificados));
-      gerarCertificado(n);
-    }
-  });
-}
-
-function gerarCertificado(n){
-  alert(
-    `🎓 CERTIFICADO CONQUISTADO!\n\n${jogador.nome}\n`+
-    `concluiu o ${n.nivel}º Nível da Prevenção\n${n.nome}\n\n`+
-    `Campanha: 12 Regras de Ouro para um Ano Mais Seguro`
-  );
-}
-
-carregarRanking();
-carregarSelos();
 
 </script>
 
