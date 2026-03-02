@@ -215,60 +215,72 @@ function carregarRegra(){
 /* =========================
    CONCLUIR REGRA
 ========================= */
-function concluirRegra(){
-
-  let pontosRegra=0;
-
-  document.querySelectorAll(".question").forEach((q,i)=>{
-    const marcada=document.querySelector(`input[name="q${i}"]:checked`);
-    if(marcada && (marcada.value==="true")===regras[regraAtual].p[i][1]){
-      pontosRegra+=10;
-      q.classList.add("correct");
-    }else{
-      q.classList.add("wrong");
-    }
-  });
-
-  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
-  ranking.push({nome:jogador.nome,unidade:jogador.unidade,regra:regraAtual+1,pontos:pontosRegra});
-  localStorage.setItem("ranking",JSON.stringify(ranking));
-
-  if(pontosRegra===60){
-    salvarSelo(regraAtual);
-  }
-
-  regraAtual++;
-  atualizarRankingFinal();
-  atualizarPainelIndividual();
-  setTimeout(carregarRegra,1000);
-}
-
-/* =========================
-   RANKING FINAL (720 pts)
-========================= */
 function atualizarRankingFinal(){
 
-  let ranking=JSON.parse(localStorage.getItem("ranking"))||[];
-  let jogadores={};
+  let registros = JSON.parse(localStorage.getItem("ranking")) || [];
 
-  ranking.forEach(r=>{
-    let chave=r.nome+"|"+r.unidade;
+  let jogadores = {};
+
+  // 🔹 Agrupar e somar pontos por jogador
+  registros.forEach(r => {
+
+    let chave = r.nome + "|" + r.unidade;
+
     if(!jogadores[chave]){
-      jogadores[chave]={nome:r.nome,unidade:r.unidade,total:0};
+      jogadores[chave] = {
+        nome: r.nome,
+        unidade: r.unidade,
+        total: 0
+      };
     }
-    jogadores[chave].total+=r.pontos;
+
+    jogadores[chave].total += r.pontos;
+
   });
 
-  let finalistas=Object.values(jogadores)
-    .filter(j=>j.total===720)
-    .sort((a,b)=>b.total-a.total);
+  // 🔹 Transformar objeto em array
+  let rankingFinal = Object.values(jogadores);
 
-  ranking.innerHTML=finalistas.length?
-    `<table><thead><tr><th>Pos</th><th>Nome</th><th>Unidade</th><th>Total</th></tr></thead>
-     <tbody>${finalistas.map((j,i)=>`
-     <tr><td>${i+1}</td><td>${j.nome}</td><td>${j.unidade}</td><td>${j.total}</td></tr>`).join("")}
-     </tbody></table>`:
-     "Nenhum jogador atingiu 720 pontos ainda.";
+  // 🔹 Filtrar apenas quem atingiu 720 pontos
+  rankingFinal = rankingFinal
+    .filter(j => j.total === 720)
+    .sort((a,b)=>b.total - a.total);
+
+  // 🔹 Montar tabela
+  let html = "";
+
+  if(rankingFinal.length === 0){
+    html = "Nenhum jogador atingiu 720 pontos ainda.";
+  } else {
+
+    html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Posição</th>
+            <th>Nome</th>
+            <th>Unidade</th>
+            <th>Pontuação Final</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    rankingFinal.forEach((j,i)=>{
+      html += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${j.nome}</td>
+          <td>${j.unidade}</td>
+          <td><strong>${j.total}</strong></td>
+        </tr>
+      `;
+    });
+
+    html += "</tbody></table>";
+  }
+
+  document.getElementById("ranking").innerHTML = html;
 }
 
 /* =========================
