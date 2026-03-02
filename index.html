@@ -101,7 +101,7 @@ button:hover{background:#256428}
     <option>HUC</option>
     <option>PAUC/CIS</option>
     <option>CQA/CCO</option>
-    <option>AMPLIA</option>
+    <option>AMPLIA II</option>
     <option>CPS</option>
     <option>ADUC</option>
     <option>CCI</option>
@@ -317,22 +317,40 @@ function carregarRegra(){
    CONCLUSÃO COM 70%
 ========================= */
 function concluirRegra(){
-  if(!regraLiberada(regraAtual)) return;
 
   let pontosRegra = 0;
-  const totalQuestoes = regras[regraAtual].p.length;
 
   document.querySelectorAll(".question").forEach((q,i)=>{
     const marcada = document.querySelector(`input[name="q${i}"]:checked`);
     const correta = regras[regraAtual].p[i][1];
 
-    if(marcada && (marcada.value === "true") === correta){
-      pontosRegra += 10;
+    if(marcada && (marcada.value==="true")===correta){
+      pontosRegra+=10;
       q.classList.add("correct");
-    } else {
+    }else{
       q.classList.add("wrong");
     }
   });
+
+  let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
+
+  // 🔐 Grava somente a primeira tentativa
+  if(!tentativas[regraAtual]){
+    tentativas[regraAtual]=pontosRegra;
+    localStorage.setItem("tentativas",JSON.stringify(tentativas));
+    salvarRanking(pontosRegra);
+
+    if(pontosRegra>=PONTUACAO_MINIMA){
+      salvarSelo(regraAtual);
+      verificarCertificadoNivel();
+    }
+  }
+
+  mensagem.innerText=`Pontuação obtida nesta regra: ${pontosRegra} pts`;
+
+  regraAtual++;
+  setTimeout(carregarRegra,1200);
+}
 
   // 🔐 CONTROLE DE PRIMEIRA TENTATIVA
   let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
@@ -384,40 +402,54 @@ function concluirRegra(){
    RANKING – PRIMEIRA TENTATIVA
 ========================= */
 
-function salvarRankingPrimeiraTentativa(pontosRegra){
+function salvarRanking(p){
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
 
   ranking.push({
-    nome: jogador.nome,
-    unidade: jogador.unidade,
-    regra: regras[regraAtual].titulo,
-    regraIndex: regraAtual,
-    pontos: pontosRegra,
-    data: new Date().toLocaleDateString("pt-BR"),
-    hora: new Date().toLocaleTimeString("pt-BR")
+    nome:jogador.nome,
+    unidade:jogador.unidade,
+    regra: regraAtual+1,
+    pontos:p
   });
 
-  localStorage.setItem("ranking", JSON.stringify(ranking));
+  localStorage.setItem("ranking",JSON.stringify(ranking));
   carregarRanking();
 }
 
 function carregarRanking(){
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
 
-  ranking.sort((a,b)=>b.pontos - a.pontos);
+  ranking.sort((a,b)=>b.pontos-a.pontos);
 
-  document.getElementById("ranking").innerHTML =
-    "<ol>" +
-    ranking.map(r =>
-      `<li>
-        ${r.nome} (${r.unidade})<br>
-        <small>${r.regra} – ${r.pontos} pts – ${r.data} ${r.hora}</small>
-      </li>`
-    ).join("") +
-    "</ol>";
+  let html = `
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="background:#2e7d32;color:white;">
+          <th style="padding:8px;">Nome</th>
+          <th>Unidade</th>
+          <th>Regra</th>
+          <th>Pontos</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  ranking.forEach(r=>{
+    html += `
+      <tr style="border-bottom:1px solid #ddd;text-align:center;">
+        <td style="padding:6px;">${r.nome}</td>
+        <td>${r.unidade}</td>
+        <td>Regra ${r.regra}</td>
+        <td><strong>${r.pontos}</strong></td>
+      </tr>
+    `;
+  });
+
+  html += `</tbody></table>`;
+
+  rankingDiv = document.getElementById("ranking");
+  rankingDiv.innerHTML = html;
 }
-
-
 /* =========================
    SELOS
 ========================= */
