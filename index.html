@@ -91,7 +91,6 @@ button:hover{background:#256428}
 <h1>12 Regras de Ouro</h1>
 <h2>Para um Ano Mais Seguro</h2>
 
-<!-- LOGIN -->
 <div id="login">
   <h3>Identificação do participante</h3>
   <input id="nome" placeholder="Nome completo">
@@ -109,7 +108,6 @@ button:hover{background:#256428}
   <button onclick="start()">Iniciar Desafio</button>
 </div>
 
-<!-- JOGO -->
 <div id="jogo" class="hidden">
   <h3 id="tituloRegra"></h3>
   <div id="perguntas"></div>
@@ -117,13 +115,11 @@ button:hover{background:#256428}
   <div id="mensagem" class="msg"></div>
 </div>
 
-<!-- RANKING -->
 <div class="ranking">
   <h3>🏆 Ranking Geral</h3>
   <div id="ranking"></div>
 </div>
 
-<!-- SELOS -->
 <div class="ranking">
   <h3>🏅 Selos Conquistados</h3>
   <div id="selos" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
@@ -132,6 +128,7 @@ button:hover{background:#256428}
 </div>
 
 <script>
+
 /* =========================
    VARIÁVEIS GLOBAIS
 ========================= */
@@ -139,30 +136,27 @@ let jogador = {};
 let pontos = 0;
 let regraAtual = 0;
 
-/* =========================
-   CONFIGURAÇÕES
-========================= */
-const PONTUACAO_MINIMA = 42; // 70%
+const PONTUACAO_MINIMA = 42;
 
 /* =========================
    MAPA MENSAL
 ========================= */
 const regrasPorMes = {
-  0: [0, 1],        // Janeiro → Regras 01 e 02
-  1: [0, 1, 2],     // Fevereiro → Regras 01, 02 e 03  ✅
-  2: [3],           // Março → Regra 04
-  3: [4],           // Abril → Regra 05
-  4: [5],           // Maio → Regra 06
-  5: [6],           // Junho → Regra 07
-  6: [7],           // Julho → Regra 08
-  7: [8],           // Agosto → Regra 09
-  8: [9],           // Setembro → Regra 10
-  9: [10],          // Outubro → Regra 11
-  10:[11]           // Novembro → Regra 12
+  0: [0, 1],
+  1: [0, 1, 2],
+  2: [3],
+  3: [4],
+  4: [5],
+  5: [6],
+  6: [7],
+  7: [8],
+  8: [9],
+  9: [10],
+  10:[11]
 };
 
 /* =========================
-   NÍVEIS DE PREVENÇÃO
+   NÍVEIS
 ========================= */
 const niveis = [
   { nivel:1, nome:"Atenção Básica", regras:[0,1] },
@@ -172,7 +166,7 @@ const niveis = [
 ];
 
 /* =========================
-   REGRAS (exemplo 1 e 2)
+   REGRAS
 ========================= */
 const regras = [
   {titulo:"Regra 01 – Atenção no Trajeto",p:[
@@ -274,8 +268,9 @@ const regras = [
 ];
 
 /* =========================
-   FUNÇÕES BASE
+   FUNÇÕES
 ========================= */
+
 function regraLiberada(i){
   return regrasPorMes[new Date().getMonth()]?.includes(i);
 }
@@ -285,7 +280,8 @@ function start(){
   const unidade=document.getElementById("unidade").value;
   if(!nome||!unidade){alert("Preencha nome e unidade");return;}
   jogador={nome,unidade};
-  pontos=0; regraAtual=0;
+  pontos=0;
+  regraAtual=0;
   document.getElementById("login").classList.add("hidden");
   document.getElementById("jogo").classList.remove("hidden");
   carregarRegra();
@@ -313,9 +309,6 @@ function carregarRegra(){
   });
 }
 
-/* =========================
-   CONCLUSÃO COM 70%
-========================= */
 function concluirRegra(){
 
   let pontosRegra = 0;
@@ -334,7 +327,6 @@ function concluirRegra(){
 
   let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
 
-  // 🔐 Grava somente a primeira tentativa
   if(!tentativas[regraAtual]){
     tentativas[regraAtual]=pontosRegra;
     localStorage.setItem("tentativas",JSON.stringify(tentativas));
@@ -346,62 +338,13 @@ function concluirRegra(){
     }
   }
 
-  mensagem.innerText=`Pontuação obtida nesta regra: ${pontosRegra} pts`;
+  document.getElementById("mensagem").innerText=`Pontuação obtida nesta regra: ${pontosRegra} pts`;
 
   regraAtual++;
   setTimeout(carregarRegra,1200);
 }
 
-  // 🔐 CONTROLE DE PRIMEIRA TENTATIVA
-  let tentativas = JSON.parse(localStorage.getItem("tentativas")) || {};
-
-  if(!tentativas[`regra_${regraAtual}`]){
-    const aprovado = pontosRegra >= PONTUACAO_MINIMA;
-
-    tentativas[`regra_${regraAtual}`] = {
-      primeiraPontuacao: pontosRegra,
-      aprovado: aprovado,
-      selo: aprovado
-    };
-
-    localStorage.setItem("tentativas", JSON.stringify(tentativas));
-
-    // Ranking usa SEMPRE a primeira tentativa
-    salvarRankingPrimeiraTentativa(pontosRegra);
-
-    if(aprovado){
-      salvarSelo(regraAtual);
-    }
-  }
-
-  // Mensagem para o jogador
-  if(pontosRegra >= PONTUACAO_MINIMA){
-    document.getElementById("mensagem").innerText =
-      `✅ Regra concluída!\nPontuação obtida: ${pontosRegra} pts`;
-    regraAtual++;
-    setTimeout(carregarRegra, 1500);
-  } else {
-    document.getElementById("mensagem").innerText =
-      `❌ Pontuação insuficiente (${pontosRegra} pts).\nVocê pode tentar novamente para avançar.`;
-  }
-}
-
-  pontos+=pontosRegra;
-  salvarRanking();
-  salvarSelo(regraAtual);
-  verificarCertificadoNivel();
-
-  document.getElementById("mensagem").innerText=
-    `✅ Regra concluída!\nPontuação da regra: ${pontosRegra} pts`;
-
-  regraAtual++;
-  setTimeout(carregarRegra,1500);
-}
-
-/* =========================
-   RANKING – PRIMEIRA TENTATIVA
-========================= */
-
+/* RANKING */
 function salvarRanking(p){
   let ranking = JSON.parse(localStorage.getItem("ranking")) || [];
 
@@ -447,12 +390,10 @@ function carregarRanking(){
 
   html += `</tbody></table>`;
 
-  rankingDiv = document.getElementById("ranking");
-  rankingDiv.innerHTML = html;
+  document.getElementById("ranking").innerHTML = html;
 }
-/* =========================
-   SELOS
-========================= */
+
+/* SELOS */
 function salvarSelo(i){
   let s=JSON.parse(localStorage.getItem("selos"))||[];
   if(!s.includes(i)){s.push(i);}
@@ -468,9 +409,7 @@ function carregarSelos(){
     : "<p>Nenhum selo conquistado ainda.</p>";
 }
 
-/* =========================
-   CERTIFICADO POR NÍVEL
-========================= */
+/* CERTIFICADO */
 function verificarCertificadoNivel(){
   const selos=JSON.parse(localStorage.getItem("selos"))||[];
   let certificados=JSON.parse(localStorage.getItem("certificados"))||[];
@@ -494,6 +433,7 @@ function gerarCertificado(n){
 
 carregarRanking();
 carregarSelos();
+
 </script>
 
 </body>
